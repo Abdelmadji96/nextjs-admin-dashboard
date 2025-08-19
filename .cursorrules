@@ -1,0 +1,925 @@
+# Cursor Rules for Next.js 15.3.2 ∙ React 19 Project
+
+## 1. Folder & File Layout  
+
+## Project Structure
+- Use the App Router directory structure
+- Place components in `app` directory for route-specific components
+- Place shared components in `components` directory
+
+## Components
+- Use Server Components by default
+- Mark client components explicitly with 'use client'
+- Wrap client components in Suspense with fallback
+- Use dynamic loading for non-critical components
+- Implement proper error boundaries
+- Place static content at file end and interfaces in types folder
+
+## 2. Separation of Concerns  
+- **Components**  
+  - Calls `useFetch` / `usePost`, uses `AuthContext`, handles loading/error.  
+
+## 3. Hooks & Data Layer data fetching
+- **Custom Hooks**  
+  - In `src/hooks/`:  
+    - `useFetchOrders()` wraps GET + caching + invalidation.  
+    - `usePostOrder()` wraps POST + onSuccess callbacks.  
+- **Services**  
+  - In `src/services/`: raw Axios calls → plain `fetchOrders(): Promise<Order[]>`, etc.  
+  - Container hooks import only service functions, never raw URLs.
+
+## 4. Performance
+- Optimize images: Use WebP format, size data, lazy loading
+- Minimize use of 'useEffect' and 'setState'
+- Favor Server Components (RSC) where possible
+- Use dynamic loading for non-critical components
+- Implement proper caching strategies
+
+## 5. Auth & Storage  
+- **AuthContext**  
+  - Expose `{ user, token, login, logout }`.  
+  - Underlying storage via `react-secure-storage` lives only inside context , `lib/secureStorage.ts`.  
+  - Other code: `const { token } = useAuth();`, never touch storage directly.
+
+## 6. Props & Typing  
+- **Strict TS** on every hook return and component prop.  
+- **Interfaces** named `OrderListProps`, `ButtonProps`, etc.  
+
+## 7. SOLID in React  
+- **S**: One job per file.  
+- **O**: Extend via props/composition; don't patch existing code.  
+- **L**: Replacement components must accept the same props.  
+- **I**: Keep prop interfaces tiny—only pass what you need.  
+- **D**: Depend on abstractions—inject API clients or helpers via context/hooks.
+
+## 8. UI Primitives  
+- All buttons, inputs, calendars, etc. live in `src/components/ui`.  
+- **No data** or side-effects here—pure presentation.  
+- Expose only minimal props:  
+  ```ts
+  interface ButtonProps {
+    children: ReactNode;
+    onClick: () => void;
+    disabled?: boolean;
+    variant?: 'primary' | 'secondary';
+  }
+  ```
+
+## 9. 🎨 Design System & Color Chart - MANDATORY
+
+### **STRICT RULE: Use ONLY colors from `src/css/style.css` CSS Custom Properties**
+
+**❌ NEVER use arbitrary colors like:**
+- `text-blue-600`, `bg-red-500`, `border-gray-300`
+- Hardcoded hex colors: `#1234AB`, `rgb(255,0,0)`
+- Generic Tailwind colors outside our design system
+- Old color system references
+
+**✅ ALWAYS use our CSS custom properties via Tailwind classes:**
+
+#### **Primary Brand Colors:**
+```css
+/* Use these Tailwind classes that map to CSS custom properties */
+text-primary           /* var(--color-primary) - #1A4381 - Main brand blue */
+bg-primary             /* var(--color-primary) - #1A4381 - Main brand blue */
+border-primary         /* var(--color-primary) - #1A4381 - Main brand blue */
+
+text-primary-light     /* var(--color-primary-light) - #718EBF - Light brand blue */
+bg-primary-light       /* var(--color-primary-light) - #718EBF - Light brand blue */
+
+text-primary-bold      /* var(--color-primary-bold) - #092147 - Dark brand blue */
+bg-primary-bold        /* var(--color-primary-bold) - #092147 - Dark brand blue */
+
+text-primary-button    /* var(--color-primary-button) - #2C528B - Button brand blue */
+bg-primary-button      /* var(--color-primary-button) - #2C528B - Button brand blue */
+```
+
+#### **Text Colors:**
+```css
+text-text              /* var(--color-text) - #232323 - Main text color */
+text-text-placeholder  /* var(--color-text-placeholder) - #787486 - Placeholder text */
+```
+
+#### **Secondary & Additional Colors:**
+```css
+text-secondary         /* var(--color-secondary) - #323233C4 - Secondary color */
+bg-secondary           /* var(--color-secondary) - #323233C4 - Secondary color */
+bg-note               /* var(--color-note) - #D9D9D945 - Note background */
+```
+
+#### **Theme Colors (Semantic):**
+```css
+/* Use these for proper theme support */
+text-foreground        /* var(--color-foreground) - Primary text */
+text-muted-foreground  /* var(--color-muted-foreground) - Secondary text */
+bg-background          /* var(--color-background) - Page background */
+bg-card               /* var(--color-card) - Card background */
+text-card-foreground   /* var(--color-card-foreground) - Card text */
+bg-muted              /* var(--color-muted) - Muted background */
+border-border         /* var(--color-border) - Standard borders */
+text-destructive      /* var(--color-destructive) - Error/warning text */
+bg-destructive        /* var(--color-destructive) - Error backgrounds */
+text-success          /* var(--color-success) - Success text */
+bg-success            /* var(--color-success) - Success backgrounds */
+text-warning          /* var(--color-warning) - Warning text */
+bg-warning            /* var(--color-warning) - Warning backgrounds */
+```
+
+#### **Border Radius:**
+```css
+/* Use our custom button radius */
+rounded-button         /* var(--radius-button) - 5px - For buttons */
+```
+
+#### **CSS Custom Properties (for direct usage):**
+```css
+/* When using CSS directly or CSS-in-JS */
+var(--color-primary)
+var(--color-primary-light)
+var(--color-primary-bold)
+var(--color-primary-button)
+var(--color-text)
+var(--color-text-placeholder)
+var(--color-secondary)
+var(--color-note)
+var(--radius-button)
+```
+
+### **Color Usage Examples:**
+
+**✅ CORRECT:**
+```tsx
+// Brand colors using CSS custom properties
+<div className="bg-primary text-white">
+<Button className="bg-primary-button hover:bg-primary-bold rounded-button">
+<Typography className="text-primary">
+<div className="text-text bg-card">
+
+// Theme colors with semantic meaning
+<div className="bg-card border-border text-card-foreground">
+<p className="text-muted-foreground">
+<Alert className="bg-destructive/10 text-destructive">
+<div className="bg-note">
+<span className="text-secondary">
+
+// Direct CSS custom property usage
+<div style={{ backgroundColor: 'var(--color-primary)' }}>
+<button style={{ borderRadius: 'var(--radius-button)' }}>
+```
+
+**❌ INCORRECT:**
+```tsx
+// Don't use generic Tailwind colors
+<div className="bg-blue-600 text-white">
+<Button className="bg-blue-500 hover:bg-blue-700">
+<p className="text-gray-600">
+<div className="border-gray-200">
+
+// Don't use hardcoded colors
+<div style={{ color: '#1A4381' }}>
+<Button style={{ backgroundColor: '#2C528B' }}>
+
+// Don't use old color system
+<div className="text-blue-primary">
+```
+
+### **Color Reference Quick Guide:**
+
+| Use Case | Tailwind Class | CSS Variable | Color Value |
+|----------|---------------|--------------|-------------|
+| **Primary actions** | `bg-primary` | `var(--color-primary)` | `#1A4381` |
+| **Secondary actions** | `bg-primary-button` | `var(--color-primary-button)` | `#2C528B` |
+| **Hover states** | `hover:bg-primary-bold` | `var(--color-primary-bold)` | `#092147` |
+| **Light accents** | `text-primary-light` | `var(--color-primary-light)` | `#718EBF` |
+| **Main text** | `text-text` | `var(--color-text)` | `#232323` |
+| **Placeholder text** | `text-text-placeholder` | `var(--color-text-placeholder)` | `#787486` |
+| **Secondary elements** | `bg-secondary` | `var(--color-secondary)` | `#323233C4` |
+| **Note backgrounds** | `bg-note` | `var(--color-note)` | `#D9D9D945` |
+| **Success states** | `text-success` | `var(--color-success)` | `#22C55E` |
+| **Error states** | `text-destructive` | `var(--color-destructive)` | `#EF4444` |
+| **Warning states** | `text-warning` | `var(--color-warning)` | `#F59E0B` |
+| **Borders** | `border-border` | `var(--color-border)` | Theme-based |
+| **Card backgrounds** | `bg-card` | `var(--color-card)` | Theme-based |
+| **Button radius** | `rounded-button` | `var(--radius-button)` | `5px` |
+
+### **NEW COLOR SYSTEM ENFORCEMENT RULES:**
+
+#### **🚨 CRITICAL - Before Adding New Colors:**
+1. **STOP** - Check if an existing CSS custom property can be used
+2. **EVALUATE** - Is this color used in >3 places? If not, use inline styles
+3. **DOCUMENT** - Add JSDoc comment explaining the color's purpose
+4. **ADD TO SYSTEM** - Only add to `src/css/style.css` if it's a system-wide color
+5. **UPDATE RULES** - Add the new color to this rules file
+
+#### **🔒 Adding New Colors Process:**
+```css
+/* STEP 1: Add to src/css/style.css */
+:root {
+  --color-new-semantic-name: #HEX_VALUE; /* Brief description */
+}
+
+/* STEP 2: Add to tailwind.config.ts */
+colors: {
+  "new-semantic-name": "var(--color-new-semantic-name)",
+}
+
+/* STEP 3: Update this .cursorrules file with:**
+- New Tailwind class name
+- CSS variable reference  
+- Use case description
+- Add to color reference table
+```
+
+#### **✅ APPROVED Color Addition Examples:**
+```tsx
+// ✅ GOOD: Semantic naming for specific dashboard use
+--color-dashboard-accent: #FF6B35;  /* Orange accent for dashboard metrics */
+--color-status-pending: #FEF3C7;   /* Yellow for pending status */
+--color-revenue-positive: #D1FAE5; /* Green for positive revenue */
+
+// ❌ BAD: Generic or duplicate colors
+--color-blue-new: #1E40AF;         /* Too generic, use existing primary */
+--color-red-button: #DC2626;       /* Use existing destructive color */
+```
+
+#### **🛡️ Enforcement:**
+- **Code reviews MUST check** for unauthorized color usage
+- **All components MUST** use CSS custom properties via Tailwind classes
+- **Direct hex codes FORBIDDEN** except in CSS custom property definitions
+- **Any exceptions MUST** be approved by senior developer and documented
+- **New colors MUST** follow the approved addition process above
+- **Update `src/css/style.css`** if new colors are needed project-wide
+
+This ensures **perfect visual consistency**, **easy theming support**, and **maintainable color management** across the entire application while maintaining our professional brand identity.
+
+## 10. 📊 Dashboard Architecture & Data Flow - SENIOR LEVEL
+
+### **Real-time Data Management**
+```ts
+// ✅ CORRECT: Proper real-time data flow
+const useDashboardData = () => {
+  const { data: metrics, isLoading } = useFetch(
+    ['dashboard-metrics', timeframe],
+    () => fetchMetrics(timeframe),
+    { 
+      refetchInterval: 30000, // 30s for live data
+      staleTime: 25000,      // Fresh for 25s
+      cacheTime: 5 * 60 * 1000 // Cache for 5min
+    }
+  );
+};
+
+// ❌ AVOID: Direct API calls in components
+const Dashboard = () => {
+  useEffect(() => {
+    fetch('/api/metrics').then(/* ... */); // Bad!
+  }, []);
+};
+```
+
+### **Chart Component Architecture**
+```ts
+// ✅ Chart components structure
+interface ChartProps {
+  data: ChartData;
+  isLoading?: boolean;
+  error?: Error | null;
+  height?: number;
+  className?: string;
+}
+
+// Separate data transformation from presentation
+const ChartContainer = ({ dataKey, ...props }: ChartContainerProps) => {
+  const { data, isLoading, error } = useFetch(['chart', dataKey], fetchChartData);
+  const transformedData = useMemo(() => transformChartData(data), [data]);
+  
+  if (isLoading) return <ChartSkeleton />;
+  if (error) return <ChartError error={error} />;
+  
+  return <Chart data={transformedData} {...props} />;
+};
+```
+
+### **Dashboard Layout Rules**
+- **Grid System**: Use CSS Grid for main dashboard layout, Flexbox for components
+- **Responsive Breakpoints**: Mobile-first, test at 320px, 768px, 1024px, 1440px+
+- **Loading States**: Every data component MUST have skeleton loading
+- **Error Boundaries**: Wrap each dashboard section in error boundary
+- **Virtualization**: For tables >100 rows, use react-window or similar
+
+## 11. 🔄 State Management & Caching Strategy
+
+### **React Query Configuration**
+```ts
+// src/lib/queryClient.ts - MANDATORY setup
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,    // 5 minutes
+      cacheTime: 10 * 60 * 1000,   // 10 minutes
+      retry: 3,
+      refetchOnWindowFocus: false,
+      refetchOnMount: 'always',
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
+
+// Dashboard-specific cache times
+export const CACHE_TIMES = {
+  REAL_TIME: 30 * 1000,      // 30s (live metrics)
+  FREQUENT: 2 * 60 * 1000,   // 2min (user activity)
+  MODERATE: 5 * 60 * 1000,   // 5min (charts/reports)
+  STATIC: 30 * 60 * 1000,    // 30min (settings/config)
+} as const;
+```
+
+### **Custom Hook Patterns**
+```ts
+// ✅ CORRECT: Specialized dashboard hooks
+export const useDashboardMetrics = (timeframe: string) => {
+  return useFetch(
+    ['dashboard', 'metrics', timeframe],
+    () => fetchDashboardMetrics(timeframe),
+    {
+      staleTime: CACHE_TIMES.FREQUENT,
+      select: (data) => ({
+        ...data,
+        growth: calculateGrowth(data.current, data.previous),
+        trend: calculateTrend(data.history),
+      }),
+    }
+  );
+};
+
+// Hook composition for complex dashboard states
+export const useDashboardState = () => {
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [timeframe, setTimeframe] = useState('7d');
+  
+  const metrics = useDashboardMetrics(timeframe);
+  const charts = useChartData(filters, timeframe);
+  const alerts = useAlerts();
+  
+  return {
+    filters: { value: filters, set: setFilters },
+    timeframe: { value: timeframe, set: setTimeframe },
+    data: { metrics, charts, alerts },
+    isLoading: metrics.isLoading || charts.isLoading,
+  };
+};
+```
+
+### **Global State Rules**
+- **NO Redux/Zustand** unless managing >5 global states
+- **React Query** handles ALL server state
+- **useState/useReducer** for local component state only
+- **Context** ONLY for theme, auth, and app-wide settings
+- **URL State** for filters, pagination, search - use Next.js router
+
+## 12. 📈 Performance Optimization - CRITICAL
+
+### **Bundle Optimization**
+```ts
+// ✅ Dynamic imports for heavy components
+const ChartComponent = dynamic(() => import('./Chart'), {
+  loading: () => <ChartSkeleton />,
+  ssr: false, // Charts often need client-side rendering
+});
+
+// Route-based code splitting
+const AdminPanel = dynamic(() => import('./AdminPanel'), {
+  loading: () => <AdminSkeleton />,
+});
+```
+
+### **Image & Asset Optimization**
+```tsx
+// ✅ Optimized images
+import Image from 'next/image';
+
+const Avatar = ({ src, alt }: AvatarProps) => (
+  <Image
+    src={src}
+    alt={alt}
+    width={40}
+    height={40}
+    className="rounded-full"
+    loading="lazy"
+    placeholder="blur"
+    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+  />
+);
+
+// ✅ Asset preloading for critical resources
+<link rel="preload" href="/api/dashboard/metrics" as="fetch" crossOrigin="anonymous" />
+```
+
+### **Memory Management**
+```ts
+// ✅ Cleanup subscriptions and intervals
+const useWebSocketConnection = () => {
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL);
+    
+    return () => {
+      ws.close(); // Cleanup on unmount
+    };
+  }, []);
+};
+
+// ✅ Memoization for expensive calculations
+const ExpensiveChart = memo(({ data }: ChartProps) => {
+  const processedData = useMemo(() => 
+    processLargeDataset(data), [data]
+  );
+  
+  return <Chart data={processedData} />;
+});
+```
+
+### **Performance Monitoring**
+```ts
+// Add performance tracking
+export const trackPageView = (pageName: string) => {
+  performance.mark(`${pageName}-start`);
+  
+  // Track Time to Interactive
+  setTimeout(() => {
+    performance.mark(`${pageName}-interactive`);
+    performance.measure(
+      `${pageName}-tti`,
+      `${pageName}-start`,
+      `${pageName}-interactive`
+    );
+  }, 0);
+};
+```
+
+## 13. 🔐 Security & Authentication - ENTERPRISE LEVEL
+
+### **Authentication Flow**
+```ts
+// src/lib/auth.ts - Centralized auth logic
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  permissions: Permission[];
+  isAuthenticated: boolean;
+}
+
+export const useAuth = () => {
+  const [authState, setAuthState] = useState<AuthState>(initialState);
+  
+  const login = useCallback(async (credentials: LoginCredentials) => {
+    const response = await authService.login(credentials);
+    
+    // Store securely
+    secureStorage.setItem('auth_token', response.token);
+    secureStorage.setItem('user_data', response.user);
+    
+    setAuthState({
+      user: response.user,
+      token: response.token,
+      permissions: response.permissions,
+      isAuthenticated: true,
+    });
+  }, []);
+  
+  const logout = useCallback(() => {
+    secureStorage.clear();
+    setAuthState(initialState);
+    router.push('/auth/sign-in');
+  }, []);
+  
+  return { ...authState, login, logout };
+};
+```
+
+### **API Security**
+```ts
+// src/lib/api.ts - Secure API client
+const createApiClient = (token?: string) => {
+  const client = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+  
+  // Request interceptor for auth
+  client.interceptors.request.use((config) => {
+    const token = secureStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+  
+  // Response interceptor for auth errors
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        secureStorage.clear();
+        window.location.href = '/auth/sign-in';
+      }
+      return Promise.reject(error);
+    }
+  );
+  
+  return client;
+};
+```
+
+### **Role-Based Access Control**
+```tsx
+// ✅ Permission-based component rendering
+const ProtectedComponent = ({ children, requiredPermission }: ProtectedProps) => {
+  const { permissions } = useAuth();
+  
+  if (!permissions.includes(requiredPermission)) {
+    return <AccessDenied />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Usage
+<ProtectedComponent requiredPermission="admin.users.write">
+  <AdminPanel />
+</ProtectedComponent>
+```
+
+### **Data Sanitization**
+```ts
+// ✅ Input sanitization for forms
+import DOMPurify from 'dompurify';
+
+const sanitizeInput = (input: string): string => {
+  return DOMPurify.sanitize(input.trim());
+};
+
+// Use in form handlers
+const handleFormSubmit = (data: FormData) => {
+  const sanitizedData = {
+    name: sanitizeInput(data.name),
+    email: sanitizeInput(data.email),
+    // ... other fields
+  };
+};
+```
+
+## 14. 🧪 Testing Strategy - COMPREHENSIVE
+
+### **Component Testing**
+```ts
+// ✅ Proper test structure
+describe('DashboardMetrics', () => {
+  const mockData = {
+    revenue: 1000,
+    users: 250,
+    growth: 12.5,
+  };
+  
+  beforeEach(() => {
+    queryClient.clear();
+  });
+  
+  it('displays metrics correctly', async () => {
+    server.use(
+      rest.get('/api/metrics', (req, res, ctx) =>
+        res(ctx.json(mockData))
+      )
+    );
+    
+    render(<DashboardMetrics />, { wrapper: TestWrapper });
+    
+    await waitFor(() => {
+      expect(screen.getByText('$1,000')).toBeInTheDocument();
+      expect(screen.getByText('250')).toBeInTheDocument();
+      expect(screen.getByText('12.5%')).toBeInTheDocument();
+    });
+  });
+  
+  it('handles loading state', () => {
+    render(<DashboardMetrics />, { wrapper: TestWrapper });
+    expect(screen.getByTestId('metrics-skeleton')).toBeInTheDocument();
+  });
+  
+  it('handles error state', async () => {
+    server.use(
+      rest.get('/api/metrics', (req, res, ctx) =>
+        res(ctx.status(500))
+      )
+    );
+    
+    render(<DashboardMetrics />, { wrapper: TestWrapper });
+    
+    await waitFor(() => {
+      expect(screen.getByText(/error loading metrics/i)).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### **Hook Testing**
+```ts
+// ✅ Custom hook testing
+describe('useDashboardMetrics', () => {
+  it('fetches and transforms data correctly', async () => {
+    const { result } = renderHook(() => useDashboardMetrics('7d'), {
+      wrapper: TestWrapper,
+    });
+    
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.data).toHaveProperty('growth');
+      expect(result.current.data).toHaveProperty('trend');
+    });
+  });
+});
+```
+
+### **E2E Testing Guidelines**
+```ts
+// ✅ Critical user flows
+test('admin can view dashboard and navigate to reports', async ({ page }) => {
+  await page.goto('/dashboard');
+  
+  // Check dashboard loads
+  await expect(page.locator('[data-testid="revenue-metric"]')).toBeVisible();
+  
+  // Navigate to reports
+  await page.click('[data-testid="reports-nav"]');
+  await expect(page).toHaveURL('/reports');
+  
+  // Check reports table loads
+  await expect(page.locator('[data-testid="reports-table"]')).toBeVisible();
+});
+```
+
+## 15. 📱 Accessibility & Responsive Design
+
+### **WCAG 2.1 Compliance**
+```tsx
+// ✅ Accessible dashboard components
+const MetricCard = ({ title, value, trend }: MetricCardProps) => (
+  <div 
+    role="region" 
+    aria-labelledby={`metric-${title}`}
+    className="bg-card border-border rounded-lg p-6"
+  >
+    <h3 id={`metric-${title}`} className="text-muted-foreground text-sm font-medium">
+      {title}
+    </h3>
+    <div className="flex items-center gap-2 mt-2">
+      <span className="text-2xl font-bold text-foreground">
+        {value}
+      </span>
+      <span 
+        className={cn(
+          "text-sm",
+          trend > 0 ? "text-success" : "text-destructive"
+        )}
+        aria-label={`${trend > 0 ? 'Increased' : 'Decreased'} by ${Math.abs(trend)}%`}
+      >
+        {trend > 0 ? '+' : ''}{trend}%
+      </span>
+    </div>
+  </div>
+);
+
+// ✅ Keyboard navigation for tables
+const DataTable = ({ data }: DataTableProps) => (
+  <table role="table" aria-label="Data table">
+    <thead>
+      <tr>
+        {columns.map((column) => (
+          <th 
+            key={column.id}
+            scope="col"
+            className="text-left font-medium text-muted-foreground"
+          >
+            {column.title}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {data.map((row, index) => (
+        <tr 
+          key={row.id}
+          tabIndex={0}
+          className="focus:outline-none focus:bg-muted"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleRowSelect(row);
+          }}
+        >
+          {/* Row content */}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+```
+
+### **Responsive Dashboard Rules**
+```css
+/* ✅ Dashboard grid system */
+.dashboard-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Stack sidebar on mobile */
+  .dashboard-layout {
+    grid-template-areas: 
+      "header"
+      "main"
+      "sidebar";
+  }
+}
+
+/* ✅ Touch-friendly sizing */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+```
+
+## 16. 🚀 Deployment & DevOps
+
+### **Environment Configuration**
+```ts
+// src/lib/env.ts - Type-safe environment variables
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']),
+  NEXT_PUBLIC_API_URL: z.string().url(),
+  NEXT_PUBLIC_WS_URL: z.string().url(),
+  DATABASE_URL: z.string(),
+  JWT_SECRET: z.string().min(32),
+  REDIS_URL: z.string().optional(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+### **Build Optimization**
+```js
+// next.config.mjs
+const nextConfig = {
+  experimental: {
+    optimizeCss: true,
+    optimizeServerReact: true,
+  },
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+  },
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
+  
+  // Bundle analyzer in development
+  ...(process.env.ANALYZE === 'true' && {
+    webpack: (config) => {
+      config.plugins.push(new BundleAnalyzerPlugin());
+      return config;
+    },
+  }),
+};
+```
+
+### **Monitoring & Observability**
+```ts
+// src/lib/monitoring.ts
+export const logError = (error: Error, context?: Record<string, any>) => {
+  if (process.env.NODE_ENV === 'production') {
+    // Send to monitoring service
+    console.error('Dashboard Error:', { error, context, timestamp: new Date().toISOString() });
+  } else {
+    console.error(error);
+  }
+};
+
+export const trackMetric = (name: string, value: number, tags?: Record<string, string>) => {
+  if (process.env.NODE_ENV === 'production') {
+    // Send to analytics
+    console.log('Metric:', { name, value, tags });
+  }
+};
+```
+
+## 17. 🎯 Code Quality & Standards
+
+### **Linting & Formatting**
+```json
+// .eslintrc.json - Dashboard-specific rules
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "react-hooks/exhaustive-deps": "error",
+    "react/display-name": "error",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    
+    // Dashboard-specific rules
+    "no-hardcoded-api-urls": "error",
+    "prefer-const": "error",
+    "no-var": "error"
+  }
+}
+```
+
+### **Git Workflow**
+```bash
+# Branch naming convention
+feature/dashboard-metrics-optimization
+bugfix/chart-rendering-issue
+hotfix/security-vulnerability
+
+# Commit message format
+feat(dashboard): add real-time metrics updates
+fix(charts): resolve ApexCharts memory leak
+perf(tables): implement virtual scrolling
+security(auth): add token refresh mechanism
+```
+
+### **Code Review Checklist**
+- [ ] **Performance**: No unnecessary re-renders, proper memoization
+- [ ] **Security**: No exposed API keys, proper input sanitization
+- [ ] **Accessibility**: ARIA labels, keyboard navigation, color contrast
+- [ ] **Types**: Strict TypeScript, no `any` types
+- [ ] **Testing**: Unit tests for utilities, integration tests for features
+- [ ] **Documentation**: JSDoc for complex functions, README updates
+- [ ] **Design System**: Only approved colors and components used
+- [ ] **Mobile**: Responsive design tested on mobile devices
+
+## 18. 📚 Documentation Standards
+
+### **Component Documentation**
+```tsx
+/**
+ * MetricCard displays a key performance indicator with trend information
+ * 
+ * @example
+ * ```tsx
+ * <MetricCard 
+ *   title="Revenue" 
+ *   value="$12,345" 
+ *   trend={12.5}
+ *   icon={<DollarSignIcon />}
+ * />
+ * ```
+ */
+interface MetricCardProps {
+  /** The metric title displayed above the value */
+  title: string;
+  /** The main metric value (pre-formatted) */
+  value: string;
+  /** Percentage change from previous period */
+  trend: number;
+  /** Optional icon to display */
+  icon?: React.ReactNode;
+  /** Additional CSS classes */
+  className?: string;
+}
+```
+
+### **API Documentation**
+```ts
+// src/services/dashboard.service.ts
+/**
+ * Fetches dashboard metrics for the specified time period
+ * 
+ * @param timeframe - Time period: '7d', '30d', '90d', '1y'
+ * @param filters - Optional filters for data segmentation
+ * @returns Promise<DashboardMetrics>
+ * 
+ * @throws {APIError} When the request fails
+ * @throws {ValidationError} When timeframe is invalid
+ */
+export const fetchDashboardMetrics = async (
+  timeframe: Timeframe,
+  filters?: MetricFilters
+): Promise<DashboardMetrics> => {
+  // Implementation
+};
+```
+
+This comprehensive rule set ensures your Next.js dashboard project follows enterprise-level best practices for scalability, maintainability, security, and performance.

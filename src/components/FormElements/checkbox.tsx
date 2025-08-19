@@ -1,68 +1,56 @@
-import { CheckIcon, XIcon } from "@/assets/icons";
-import { cn } from "@/lib/utils";
-import { useId } from "react";
+"use client";
 
-type PropsType = {
-  withIcon?: "check" | "x";
-  withBg?: boolean;
-  label: string;
+import React from "react";
+
+interface CheckboxProps {
+  id?: string;
   name?: string;
+  label: string;
+  checked?: boolean;
+  withIcon?: string;
   minimal?: boolean;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  radius?: "default" | "md";
-};
+  radius?: string;
+  onChange: (e: any) => void;
+}
 
-export function Checkbox({
-  withIcon,
-  label,
-  name,
-  withBg,
-  minimal,
-  onChange,
-  radius,
-}: PropsType) {
-  const id = useId();
-
+export function Checkbox({ id, name, label, checked, onChange }: CheckboxProps) {
+  const inputId = id || name || 'checkbox';
+  
   return (
-    <div>
+    <div className="flex items-center">
+      <input
+        type="checkbox"
+        id={inputId}
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="sr-only"
+      />
       <label
-        htmlFor={id}
-        className={cn(
-          "flex cursor-pointer select-none items-center",
-          !minimal && "text-body-sm font-medium",
-        )}
+        htmlFor={inputId}
+        className="flex cursor-pointer select-none items-center text-body-sm font-medium text-dark dark:text-white"
       >
         <div className="relative">
-          <input
-            type="checkbox"
-            onChange={onChange}
-            name={name}
-            id={id}
-            className="peer sr-only"
-          />
-
-          <div
-            className={cn(
-              "mr-2 flex size-5 items-center justify-center rounded border border-dark-5 peer-checked:border-primary dark:border-dark-6 peer-checked:[&>*]:block",
-              withBg
-                ? "peer-checked:bg-primary [&>*]:text-white"
-                : "peer-checked:bg-gray-2 dark:peer-checked:bg-transparent",
-              minimal && "mr-3 border-stroke dark:border-dark-3",
-              radius === "md" && "rounded-md",
-            )}
-          >
-            {!withIcon && (
-              <span className="hidden size-2.5 rounded-sm bg-primary" />
-            )}
-
-            {withIcon === "check" && (
-              <CheckIcon className="hidden text-primary" />
-            )}
-
-            {withIcon === "x" && <XIcon className="hidden text-primary" />}
+          <div className="box mr-3 flex h-5 w-5 items-center justify-center rounded border-[0.5px] border-stroke bg-gray-2 dark:border-dark-3 dark:bg-dark-2">
+            <span className={`opacity-0 ${checked && "!opacity-100"}`}>
+              <svg
+                width="10"
+                height="7"
+                viewBox="0 0 10 7"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M9.70685 0.292804C9.89455 0.480344 10 0.734667 10 0.999847C10 1.26503 9.89455 1.51935 9.70685 1.70689L4.70059 6.7072C4.51283 6.89468 4.2582 7 3.9927 7C3.72721 7 3.47258 6.89468 3.28482 6.7072L0.281063 3.70701C0.0986771 3.5184 -0.00224342 3.26578 3.785e-05 3.00357C0.00231912 2.74136 0.10762 2.49053 0.29326 2.30511C0.4789 2.11969 0.730026 2.01451 0.992551 2.01224C1.25508 2.00996 1.50799 2.11076 1.69683 2.29293L3.9927 4.58607L8.29108 0.292804C8.47884 0.105322 8.73347 0 8.99896 0C9.26446 0 9.51909 0.105322 9.70685 0.292804Z"
+                  fill="#3C50E0"
+                />
+              </svg>
+            </span>
           </div>
         </div>
-        <span>{label}</span>
+        {label}
       </label>
     </div>
   );

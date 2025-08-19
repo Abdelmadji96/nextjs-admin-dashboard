@@ -13,43 +13,44 @@ export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
+    <header className="sticky top-0 z-30 flex items-center justify-between bg-white/95 backdrop-blur-md px-4 py-5 dark:bg-gray-dark/95 md:px-5 2xl:px-10 border-b border-border/30 shadow-lg shadow-black/5 dark:shadow-black/20">
       <button
         onClick={toggleSidebar}
-        className="rounded-lg border px-1.5 py-1 dark:border-stroke-dark dark:bg-[#020D1A] hover:dark:bg-[#FFFFFF1A] lg:hidden"
+        className="rounded-xl border border-border/50 px-3 py-2 bg-white/80 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md dark:bg-gray-dark/80 dark:border-border/30 dark:hover:bg-primary/20 lg:hidden"
       >
         <MenuIcon />
         <span className="sr-only">Toggle Sidebar</span>
       </button>
 
       {isMobile && (
-        <Link href={"/"} className="ml-2 max-[430px]:hidden min-[375px]:ml-4">
+        <Link href={"/"} className="ml-2 max-[430px]:hidden min-[375px]:ml-4 hover:scale-110 transition-transform duration-200">
           <Image
             src={"/images/logo/logo-icon.svg"}
             width={32}
             height={32}
             alt=""
             role="presentation"
+            className="drop-shadow-sm"
           />
         </Link>
       )}
 
-      <div className="max-xl:hidden">
-        <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white">
+      <div className="max-xl:hidden bg-gradient-to-r from-primary to-primary-light bg-clip-text">
+        <h1 className="mb-0.5 text-heading-5 font-bold text-transparent drop-shadow-sm">
           Dashboard
         </h1>
-        <p className="font-medium">Next.js Admin Dashboard Solution</p>
+        <p className="font-medium text-muted-foreground text-sm">Next.js Admin Dashboard Solution</p>
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
-        <div className="relative w-full max-w-[300px]">
+        <div className="relative w-full max-w-[300px] group">
           <input
             type="search"
             placeholder="Search"
-            className="flex w-full items-center gap-3.5 rounded-full border bg-gray-2 py-3 pl-[53px] pr-5 outline-none transition-colors focus-visible:border-primary dark:border-dark-3 dark:bg-dark-2 dark:hover:border-dark-4 dark:hover:bg-dark-3 dark:hover:text-dark-6 dark:focus-visible:border-primary"
+            className="flex w-full items-center gap-3.5 rounded-2xl border border-border/30 bg-white/80 dark:bg-gray-dark/80 py-3 pl-[53px] pr-5 outline-none transition-all duration-200 focus-visible:border-primary focus-visible:bg-white dark:focus-visible:bg-gray-dark focus-visible:shadow-lg focus-visible:shadow-primary/10 hover:border-primary/50 hover:shadow-md backdrop-blur-sm"
           />
 
-          <SearchIcon className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 max-[1015px]:size-5" />
+          <SearchIcon className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 max-[1015px]:size-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
         </div>
 
         <ThemeToggleSwitch />

@@ -1,98 +1,91 @@
-import * as Icons from "../icons";
+import { 
+  BarChart3, 
+  Shield, 
+  GraduationCap, 
+  UserCheck, 
+  HelpCircle, 
+  Users, 
+  Lock,
+  Palette,
+  BookOpen,
+  LucideIcon 
+} from "lucide-react";
 
-export const NAV_DATA = [
+interface NavItem {
+  title: string;
+  url?: string;
+  icon: LucideIcon;
+  items: Array<{
+    title: string;
+    url: string;
+  }>;
+}
+
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+export const NAV_DATA: NavSection[] = [
   {
-    label: "MAIN MENU",
+    label: "VERIFICATION DASHBOARD",
     items: [
       {
-        title: "Dashboard",
-        icon: Icons.HomeIcon,
-        items: [
-          {
-            title: "eCommerce",
-            url: "/",
-          },
-        ],
-      },
-      {
-        title: "Calendar",
-        url: "/calendar",
-        icon: Icons.Calendar,
+        title: "Statistics",
+        url: "/",
+        icon: BarChart3, // Analytics and statistics
         items: [],
       },
       {
-        title: "Profile",
-        url: "/profile",
-        icon: Icons.User,
+        title: "Verify Identity",
+        url: "/verify-identity",
+        icon: Shield, // Shield for identity verification/security
         items: [],
       },
       {
-        title: "Forms",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "Form Elements",
-            url: "/forms/form-elements",
-          },
-          {
-            title: "Form Layout",
-            url: "/forms/form-layout",
-          },
-        ],
+        title: "Verify Diploma",
+        url: "/verify-diploma",
+        icon: GraduationCap, // Education/graduation cap for diploma
+        items: [],
       },
       {
-        title: "Tables",
-        url: "/tables",
-        icon: Icons.Table,
-        items: [
-          {
-            title: "Tables",
-            url: "/tables",
-          },
-        ],
+        title: "Verify User",
+        url: "/verify-user",
+        icon: UserCheck, // User with checkmark for user verification
+        items: [],
       },
       {
-        title: "Pages",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "Settings",
-            url: "/pages/settings",
-          },
-        ],
+        title: "Support",
+        url: "/support",
+        icon: HelpCircle, // Help circle for support
+        items: [],
+      },
+      {
+        title: "Sponsored Courses",
+        url: "/sponsored-courses",
+        icon: BookOpen, // Book for courses
+        items: [],
       },
     ],
   },
   {
-    label: "OTHERS",
+    label: "ADMINISTRATION",
     items: [
       {
-        title: "Charts",
-        icon: Icons.PieChart,
-        items: [
-          {
-            title: "Basic Chart",
-            url: "/charts/basic-chart",
-          },
-        ],
+        title: "User Management",
+        url: "/users",
+        icon: Users, // Multiple users for user management
+        items: [],
       },
       {
-        title: "UI Elements",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Alerts",
-            url: "/ui-elements/alerts",
-          },
-          {
-            title: "Buttons",
-            url: "/ui-elements/buttons",
-          },
-        ],
+        title: "Color System",
+        url: "/color-system",
+        icon: Palette, // Palette for color system
+        items: [],
       },
       {
         title: "Authentication",
-        icon: Icons.Authentication,
+        icon: Lock, // Lock for authentication/security
         items: [
           {
             title: "Sign In",
@@ -103,3 +96,4 @@ export const NAV_DATA = [
     ],
   },
 ];
+
