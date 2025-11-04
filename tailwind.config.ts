@@ -21,41 +21,63 @@ const config: Config = {
   			current: 'currentColor',
   			transparent: 'transparent',
   			white: '#FFFFFF',
+  			
+  			/* === Primary Brand Colors === */
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
+  				DEFAULT: 'var(--color-primary)',
   				light: 'var(--color-primary-light)',
   				bold: 'var(--color-primary-bold)',
   				button: 'var(--color-primary-button)',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
+  			
+  			/* === Text Colors === */
   			text: {
   				DEFAULT: 'var(--color-text)',
   				placeholder: 'var(--color-text-placeholder)'
   			},
+  			
+  			/* === Secondary & Semantic Colors === */
   			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
+  				DEFAULT: 'var(--color-secondary)',
   				foreground: 'hsl(var(--secondary-foreground))'
   			},
   			note: 'var(--color-note)',
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
   			success: 'var(--color-success)',
   			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
+  				DEFAULT: 'var(--color-destructive)',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			warning: 'var(--color-warning)',
-  			stroke: '#E6EBF1',
-  			'stroke-dark': '#27303E',
+  			
+  			/* === Theme Colors === */
+  			background: 'var(--color-background)',
+  			foreground: 'var(--color-foreground)',
+  			card: {
+  				DEFAULT: 'var(--color-card)',
+  				foreground: 'var(--color-card-foreground)'
+  			},
+  			muted: {
+  				DEFAULT: 'var(--color-muted)',
+  				foreground: 'var(--color-muted-foreground)'
+  			},
+  			border: 'var(--color-border)',
+  			stroke: 'var(--color-stroke)',
+  			'stroke-dark': 'var(--color-stroke-dark)',
+  			
+  			/* === Chart Colors === */
+  			chart: {
+  				'1': 'var(--color-chart-1)',
+  				'2': 'var(--color-chart-2)',
+  				'3': 'var(--color-chart-3)',
+  				'4': 'var(--color-chart-4)',
+  				'5': 'var(--color-chart-5)',
+  				'6': 'var(--color-chart-6)',
+  				'7': 'var(--color-chart-7)',
+  				'8': 'var(--color-chart-8)'
+  			},
+  			
+  			/* === Legacy Colors (for backward compatibility) === */
   			dark: {
   				'2': '#1F2A37',
   				'3': '#374151',
@@ -129,6 +151,8 @@ const config: Config = {
   					DEFAULT: '#FCD34D'
   				}
   			},
+  			
+  			/* === Shadcn HSL Colors === */
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'
@@ -138,17 +162,7 @@ const config: Config = {
   				foreground: 'hsl(var(--accent-foreground))'
   			},
   			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  						chart: {
-				'1': 'var(--color-chart-1)',
-				'2': 'var(--color-chart-2)',
-				'3': 'var(--color-chart-3)',
-				'4': 'var(--color-chart-4)',
-				'5': 'var(--color-chart-5)',
-				'6': 'var(--color-chart-6)',
-				'7': 'var(--color-chart-7)',
-				'8': 'var(--color-chart-8)'
-			}
+  			ring: 'hsl(var(--ring))'
   		},
   		fontSize: {
   			'heading-1': [
