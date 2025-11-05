@@ -1,10 +1,9 @@
-import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
-import {
-  getAccessToken,
-  getRefreshToken,
-  updateAccessToken,
-  clearAuthData,
-} from "./cookies";
+import axios, {
+  type AxiosInstance,
+  type InternalAxiosRequestConfig,
+} from "axios";
+import { getAccessToken, clearAuthData } from "./cookies";
+import { refreshToken } from "@/services/auth.service";
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3000";
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || "v1";
@@ -31,7 +30,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor - Handle token refresh and errors
@@ -47,24 +46,12 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = getRefreshToken();
+        // Attempt to refresh the token using auth service
+        const { access_token } = await refreshToken();
 
-        if (refreshToken) {
-          // Attempt to refresh the token
-          const response = await axios.post(
-            `${API_HOST}/api/${API_VERSION}/auth/refresh`,
-            { refresh_token: refreshToken }
-          );
-
-          const { access_token } = response.data;
-
-          // Update access token
-          updateAccessToken(access_token);
-
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return apiClient(originalRequest);
-        }
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed, clear tokens and redirect to login
         clearAuthData();
@@ -78,7 +65,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;
@@ -87,4 +74,3 @@ export default apiClient;
 export const getApiUrl = (endpoint: string) => {
   return `${API_HOST}/api/${API_VERSION}${endpoint}`;
 };
-

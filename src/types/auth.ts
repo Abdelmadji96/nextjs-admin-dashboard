@@ -35,3 +35,11 @@ export interface ProfileResponse {
   extra: Record<string, any>;
 }
 
+export interface RefreshTokenRequest {
+  refresh_token: string;
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+}
+

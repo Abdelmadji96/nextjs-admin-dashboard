@@ -1,6 +1,6 @@
 import apiClient from "@/lib/api";
-import { saveAuthData, clearAuthData } from "@/lib/cookies";
-import type { LoginRequest, LoginResponse } from "@/types/auth";
+import { saveAuthData, clearAuthData, updateAccessToken, getRefreshToken } from "@/lib/cookies";
+import type { LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse } from "@/types/auth";
 
 /**
  * Login user
@@ -21,6 +21,28 @@ export const login = async (credentials: LoginRequest): Promise<any> => {
     status: response.status,
     message: "Login successful! Welcome back.",
   };
+};
+
+/**
+ * Refresh access token using refresh token
+ * POST /auth/refresh
+ */
+export const refreshToken = async (): Promise<RefreshTokenResponse> => {
+  const refresh_token = getRefreshToken();
+  
+  if (!refresh_token) {
+    throw new Error("No refresh token available");
+  }
+
+  const response = await apiClient.post<RefreshTokenResponse>(
+    "/auth/refresh",
+    { refresh_token } as RefreshTokenRequest
+  );
+
+  // Update access token in cookies
+  updateAccessToken(response.data.access_token);
+
+  return response.data;
 };
 
 /**
