@@ -20,13 +20,64 @@
   - Calls `useFetch` / `usePost`, uses `AuthContext`, handles loading/error.  
 
 ## 3. Hooks & Data Layer data fetching
-- **Custom Hooks**  
-  - In `src/hooks/`:  
-    - `useFetchOrders()` wraps GET + caching + invalidation.  
-    - `usePostOrder()` wraps POST + onSuccess callbacks.  
-- **Services**  
-  - In `src/services/`: raw Axios calls → plain `fetchOrders(): Promise<Order[]>`, etc.  
-  - Container hooks import only service functions, never raw URLs.
+
+### **REST API Data Fetching Rules - MANDATORY**
+
+**✅ ALWAYS use `useFetch` and `usePost` directly in components:**
+
+```tsx
+// ✅ CORRECT: Use useFetch directly
+import { useFetch } from "@/hooks/useFetch";
+import { getProfile } from "@/services/profile.service";
+
+const ProfileComponent = () => {
+  const { data, isLoading, error } = useFetch(
+    ["profile"],
+    getProfile,
+    { staleTime: 5 * 60 * 1000 }
+  );
+};
+
+// ✅ CORRECT: Use usePost directly
+import { usePost } from "@/hooks/usePost";
+import { createOrder } from "@/services/order.service";
+
+const OrderForm = () => {
+  const { mutate, isPending } = usePost(createOrder);
+  
+  const handleSubmit = (data) => {
+    mutate(data, {
+      onSuccess: () => console.log("Success!")
+    });
+  };
+};
+```
+
+**❌ NEVER create wrapper hooks for API calls:**
+
+```tsx
+// ❌ WRONG: Don't create useProfile, useOrders, etc.
+export const useProfile = () => {
+  return useFetch(["profile"], getProfile);
+};
+
+// ❌ WRONG: Don't wrap useFetch/usePost
+export const useCreateOrder = () => {
+  return usePost(createOrder);
+};
+```
+
+**Service Layer Structure:**
+- **Services** (`src/services/`): Pure API functions
+  - `getProfile(): Promise<Profile>`
+  - `createOrder(data): Promise<Order>`
+  - Raw Axios/fetch calls, no hooks
+  - Return plain promises
+
+**Component Usage:**
+- Import service function + `useFetch`/`usePost`
+- Use hooks directly in component
+- No intermediate wrapper hooks
 
 ## 4. Performance
 - Optimize images: Use WebP format, size data, lazy loading
@@ -34,6 +85,71 @@
 - Favor Server Components (RSC) where possible
 - Use dynamic loading for non-critical components
 - Implement proper caching strategies
+
+## 4.1 Loading States - MANDATORY
+
+**✅ ALWAYS provide proper skeleton loaders for loading states:**
+
+```tsx
+// ✅ CORRECT: Use dedicated skeleton component
+import { Skeleton, SkeletonAvatar, SkeletonText } from "@/components/ui/skeleton";
+
+const ProfileComponent = () => {
+  const { data, isLoading } = useFetch(["profile"], getProfile);
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-4">
+        <SkeletonAvatar size="lg" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+      </div>
+    );
+  }
+  
+  return <ProfileContent data={data} />;
+};
+
+// ✅ CORRECT: Create component-specific skeleton
+export function UserInfoSkeleton() {
+  return (
+    <div className="flex items-center gap-3">
+      <SkeletonAvatar size="default" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+  );
+}
+```
+
+**❌ NEVER use generic loading text or spinners alone:**
+
+```tsx
+// ❌ WRONG: Generic loading text
+if (isLoading) return <p>Loading...</p>;
+
+// ❌ WRONG: Just a spinner without skeleton
+if (isLoading) return <div className="spinner" />;
+
+// ❌ WRONG: Generic div with pulse
+if (isLoading) return <div className="animate-pulse bg-gray-200 h-20" />;
+```
+
+**Skeleton Components Available:**
+- `<Skeleton />` - Base skeleton component
+- `<SkeletonText lines={3} />` - Text skeletons
+- `<SkeletonAvatar size="default" />` - Avatar skeletons
+- `<SkeletonCard />` - Card skeletons
+
+**Rules:**
+- Every `isLoading` state MUST have a proper skeleton
+- Skeleton should match the shape/layout of actual content
+- Create component-specific skeletons for complex layouts
+- Use semantic HTML with proper ARIA labels
 
 ## 5. Auth & Storage  
 - **AuthContext**  

@@ -2,6 +2,7 @@
 
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +14,7 @@ import { useSidebarContext } from "./sidebar-context";
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
+  const { logout } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const toggleExpanded = useCallback((title: string) => {
@@ -56,7 +58,7 @@ export function Sidebar() {
       <aside
         className={cn(
           "max-w-[290px] overflow-hidden bg-white/95 backdrop-blur-md transition-all duration-300 ease-in-out dark:bg-gray-dark/95",
-          "border-r border-border/30 shadow-2xl shadow-black/5 dark:shadow-black/20",
+          "border-border/30 border-r shadow-2xl shadow-black/5 dark:shadow-black/20",
           isMobile ? "fixed bottom-0 top-0 z-50" : "sticky top-0 h-screen",
           isOpen ? "w-full" : "w-0",
         )}
@@ -64,14 +66,14 @@ export function Sidebar() {
         aria-hidden={!isOpen}
         inert={!isOpen}
       >
-        <div className="flex h-full flex-col py-8 pl-6 pr-2 relative">
+        <div className="relative flex h-full flex-col py-8 pl-6 pr-2">
           {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
-          <div className="relative pr-4.5 z-10">
+          <div className="from-primary/5 pointer-events-none absolute inset-0 bg-gradient-to-b via-transparent to-transparent" />
+          <div className="relative z-10 pr-4.5">
             <Link
               href={"/"}
               onClick={() => isMobile && toggleSidebar()}
-              className="px-0 py-2.5 min-[850px]:py-0 block hover:scale-105 transition-transform duration-200"
+              className="block px-0 py-2.5 transition-transform duration-200 hover:scale-105 min-[850px]:py-0"
             >
               <Logo />
             </Link>
@@ -89,15 +91,20 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <div className="custom-scrollbar mt-8 flex-1 overflow-y-auto pr-3 min-[850px]:mt-12 z-10 relative">
-            {NAV_DATA.map((section) => (
-              <div key={section.label} className="mb-8 bg-white/50 dark:bg-gray-dark/50 rounded-xl p-4 backdrop-blur-sm border border-border/20 shadow-sm">
-                <h2 className="mb-5 text-sm font-semibold text-primary/80 dark:text-primary-light uppercase tracking-wider">
-                  {section.label}
-                </h2>
+          <div className="custom-scrollbar relative z-10 mt-8 flex-1 overflow-y-auto pr-3 min-[850px]:mt-12">
+            {NAV_DATA.map((section, index) => (
+              <div key={section.label} className="mb-6">
+                {/* Section Title with Divider */}
+                <div className="mb-4">
+                  <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    {section.label}
+                  </h2>
+                  <div className="bg-border/50 h-px" />
+                </div>
 
+                {/* Navigation Items */}
                 <nav role="navigation" aria-label={section.label}>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {section.items.map((item) => (
                       <li key={item.title}>
                         {item.items.length ? (
@@ -113,16 +120,18 @@ export function Sidebar() {
                                   "size-5 shrink-0 transition-colors duration-200",
                                   item.items.some(({ url }) => url === pathname)
                                     ? "text-white"
-                                    : "text-current group-hover:text-primary"
+                                    : "text-current group-hover:text-primary",
                                 )}
                                 aria-hidden="true"
                               />
 
-                              <span className="flex-1 text-left">{item.title}</span>
+                              <span className="flex-1 text-left">
+                                {item.title}
+                              </span>
 
                               <ChevronUp
                                 className={cn(
-                                  "size-4 ml-auto rotate-180 transition-transform duration-200",
+                                  "ml-auto size-4 rotate-180 transition-transform duration-200",
                                   expandedItems.includes(item.title) &&
                                     "rotate-0",
                                 )}
@@ -138,18 +147,34 @@ export function Sidebar() {
                                 {item.items.map((subItem) => (
                                   <li key={subItem.title} role="none">
                                     <MenuItem
-                                      className="text-sm relative before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-2 before:h-0.5 before:bg-current before:opacity-30 pl-4"
+                                      className="relative pl-4 text-sm before:absolute before:left-0 before:top-1/2 before:h-0.5 before:w-2 before:-translate-y-1/2 before:bg-current before:opacity-30"
                                       as="link"
                                       href={subItem.url}
                                       isActive={pathname === subItem.url}
                                     >
-                                      <span className="font-medium">{subItem.title}</span>
+                                      <span className="font-medium">
+                                        {subItem.title}
+                                      </span>
                                     </MenuItem>
                                   </li>
                                 ))}
                               </ul>
                             )}
                           </div>
+                        ) : item.action === "logout" ? (
+                          <MenuItem
+                            className="flex items-center gap-3"
+                            onClick={logout}
+                            isActive={false}
+                          >
+                            <item.icon
+                              className="group-hover:text-destructive/80 size-5 shrink-0 text-destructive transition-colors duration-200"
+                              aria-hidden="true"
+                            />
+                            <span className="group-hover:text-destructive/80 flex-1 text-left font-medium text-destructive">
+                              {item.title}
+                            </span>
+                          </MenuItem>
                         ) : (
                           (() => {
                             const href =
@@ -170,12 +195,14 @@ export function Sidebar() {
                                     "size-5 shrink-0 transition-colors duration-200",
                                     pathname === href
                                       ? "text-white"
-                                      : "text-current group-hover:text-primary"
+                                      : "text-current group-hover:text-primary",
                                   )}
                                   aria-hidden="true"
                                 />
 
-                                <span className="flex-1 text-left font-medium">{item.title}</span>
+                                <span className="flex-1 text-left font-medium">
+                                  {item.title}
+                                </span>
                               </MenuItem>
                             );
                           })()

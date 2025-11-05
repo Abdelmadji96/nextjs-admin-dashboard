@@ -7,11 +7,16 @@ import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | NextAdmin - Next.js Dashboard Kit",
-    default: "NextAdmin - Next.js Dashboard Kit",
+    template: "%s | Hirini - Professional Career Development",
+    default: "Hirini - Professional Career Development Platform",
   },
   description:
-    "Next.js admin dashboard toolkit with 200+ templates, UI components, and integrations for fast dashboard development.",
+    "Create professional CVs, verify credentials, and advance your career with Hirini's comprehensive development platform.",
+  icons: {
+    icon: "/images/logos/hirini.webp",
+    shortcut: "/images/logos/hirini.webp",
+    apple: "/images/logos/hirini.webp",
+  },
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {

@@ -3,32 +3,38 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Rocket } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { Button, Typography, Input, Card } from "@/components/ui";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema, type LoginFormData } from "@/schemas/auth.schema";
+import { usePost } from "@/hooks/usePost";
+import { login } from "@/services/auth.service";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  const { mutate: loginMutation, isPending } = usePost(login);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      console.log("Login data:", data);
-      // Add your login logic here
-      // Example: await signIn(data.email, data.password);
-    } catch (error) {
-      console.error("Login error:", error);
-    }
+    loginMutation(data, {
+      onSuccess: () => {
+        setTimeout(() => {
+          router.push("/");
+        }, 1000);
+      },
+    });
   };
 
   return (
@@ -71,15 +77,10 @@ export default function LoginPage() {
                 variant="h1"
                 className="text-center text-3xl font-bold text-text"
               >
-                hirinii
+                Hirinii
               </Typography>
             </div>
-            <Typography
-              variant="h2"
-              className="text-center text-2xl font-semibold text-text"
-            >
-              Dashboard panel
-            </Typography>
+
             <Typography
               variant="body"
               className="text-center text-text-placeholder"
@@ -97,11 +98,12 @@ export default function LoginPage() {
               </Typography>
               <Input
                 type="email"
-                placeholder="semih@kamion.co"
+                placeholder="root@hirini.com"
                 inputSize="lg"
                 className="w-full"
                 {...register("email")}
                 variant={errors.email ? "error" : "default"}
+                disabled={isPending}
               />
               {errors.email && (
                 <Typography
@@ -121,17 +123,19 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Min 8 numeric characters"
+                  placeholder="Root123"
                   inputSize="lg"
                   className="w-full pr-12"
                   {...register("password")}
                   variant={errors.password ? "error" : "default"}
+                  disabled={isPending}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder transition-colors hover:text-text"
                   aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={isPending}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -168,10 +172,10 @@ export default function LoginPage() {
               size="lg"
               className="w-full"
               type="submit"
-              disabled={isSubmitting}
+              disabled={isPending}
             >
-              <span>{isSubmitting ? "Signing in..." : "Sign In"}</span>
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <span>{isPending ? "Signing in..." : "Sign In"}</span>
+              {!isPending && <ArrowRight className="ml-2 h-5 w-5" />}
             </Button>
           </form>
         </div>

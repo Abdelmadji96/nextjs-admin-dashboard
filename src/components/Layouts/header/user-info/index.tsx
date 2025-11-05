@@ -7,19 +7,50 @@ import {
   DropdownTrigger,
 } from "@/components/ui/dropdown";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useFetch } from "@/hooks/useFetch";
+import { getProfile } from "@/services/profile.service";
+import type { ProfileResponse } from "@/types/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
+import { UserInfoSkeleton } from "./user-info-skeleton";
 
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
+  const { logout } = useAuth();
 
-  const USER = {
-    name: "John Smith",
-    email: "johnson@nextadmin.com",
-    img: "/images/user/user-03.png",
+  // Fetch profile data using useFetch directly
+  const { data: profileData, isLoading } = useFetch<ProfileResponse>(
+    ["user-profile"],
+    getProfile,
+  );
+
+  const handleLogout = () => {
+    setIsOpen(false);
+    logout();
   };
+
+  // Get user data from profile API
+  const user = profileData?.user;
+
+  // Format user display data
+  const USER = {
+    name:
+      user?.first_name && user?.last_name
+        ? `${user.first_name} ${user.last_name}`
+        : user?.email?.split("@")[0] || "User",
+    email: user?.email || "user@example.com",
+    reference: user?.reference || "US-ROOT",
+    userType: user?.admin_type || user?.user_type || "admin",
+    img: "/images/user/user-03.png", // Default avatar
+  };
+
+  // Show loading skeleton
+  if (isLoading) {
+    return <UserInfoSkeleton />;
+  }
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -29,7 +60,7 @@ export function UserInfo() {
         <figure className="flex items-center gap-3">
           <Image
             src={USER.img}
-            className="size-12"
+            className="size-12 rounded-full"
             alt={`Avatar of ${USER.name}`}
             role="presentation"
             width={200}
@@ -59,7 +90,7 @@ export function UserInfo() {
         <figure className="flex items-center gap-2.5 px-5 py-3.5">
           <Image
             src={USER.img}
-            className="size-12"
+            className="size-12 rounded-full"
             alt={`Avatar for ${USER.name}`}
             role="presentation"
             width={200}
@@ -67,11 +98,17 @@ export function UserInfo() {
           />
 
           <figcaption className="space-y-1 text-base font-medium">
-            <div className="mb-2 leading-none text-dark dark:text-white">
+            <div className="leading-none text-dark dark:text-white">
               {USER.name}
             </div>
 
-            <div className="leading-none text-gray-6">{USER.email}</div>
+            <div className="mt-1 text-xs leading-none text-gray-6">
+              {USER.reference}
+            </div>
+
+            <div className="mt-1 text-sm leading-none text-gray-6">
+              {USER.email}
+            </div>
           </figcaption>
         </figure>
 
@@ -106,7 +143,7 @@ export function UserInfo() {
         <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
           <button
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
-            onClick={() => setIsOpen(false)}
+            onClick={handleLogout}
           >
             <LogOutIcon />
 

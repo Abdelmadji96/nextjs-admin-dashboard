@@ -5,9 +5,8 @@ import {
   UserCheck, 
   HelpCircle, 
   Users, 
-  Lock,
-  Palette,
   BookOpen,
+  LogOut,
   LucideIcon 
 } from "lucide-react";
 
@@ -15,6 +14,7 @@ interface NavItem {
   title: string;
   url?: string;
   icon: LucideIcon;
+  action?: "logout"; // Special action type
   items: Array<{
     title: string;
     url: string;
@@ -28,42 +28,52 @@ interface NavSection {
 
 export const NAV_DATA: NavSection[] = [
   {
-    label: "VERIFICATION DASHBOARD",
+    label: "MAIN",
     items: [
       {
         title: "Statistics",
         url: "/",
-        icon: BarChart3, // Analytics and statistics
+        icon: BarChart3,
         items: [],
       },
+    ],
+  },
+  {
+    label: "VERIFICATION",
+    items: [
       {
         title: "Verify Identity",
         url: "/verify-identity",
-        icon: Shield, // Shield for identity verification/security
+        icon: Shield,
         items: [],
       },
       {
         title: "Verify Diploma",
         url: "/verify-diploma",
-        icon: GraduationCap, // Education/graduation cap for diploma
+        icon: GraduationCap,
         items: [],
       },
       {
         title: "Verify User",
         url: "/verify-user",
-        icon: UserCheck, // User with checkmark for user verification
+        icon: UserCheck,
         items: [],
       },
+    ],
+  },
+  {
+    label: "SUPPORT & COURSES",
+    items: [
       {
         title: "Support",
         url: "/support",
-        icon: HelpCircle, // Help circle for support
+        icon: HelpCircle,
         items: [],
       },
       {
         title: "Sponsored Courses",
         url: "/sponsored-courses",
-        icon: BookOpen, // Book for courses
+        icon: BookOpen,
         items: [],
       },
     ],
@@ -74,24 +84,14 @@ export const NAV_DATA: NavSection[] = [
       {
         title: "User Management",
         url: "/users",
-        icon: Users, // Multiple users for user management
+        icon: Users,
         items: [],
       },
       {
-        title: "Color System",
-        url: "/color-system",
-        icon: Palette, // Palette for color system
+        title: "Log Out",
+        icon: LogOut,
+        action: "logout",
         items: [],
-      },
-      {
-        title: "Authentication",
-        icon: Lock, // Lock for authentication/security
-        items: [
-          {
-            title: "Sign In",
-            url: "/auth/sign-in",
-          },
-        ],
       },
     ],
   },

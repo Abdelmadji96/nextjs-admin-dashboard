@@ -1,11 +1,12 @@
 import { Sidebar } from "@/components/Layouts/sidebar";
 import { Header } from "@/components/Layouts/header";
+import { AuthGuard } from "@/components/Auth/auth-guard";
 import NextTopLoader from "nextjs-toploader";
 import type { PropsWithChildren } from "react";
 
 export default function DashboardLayout({ children }: PropsWithChildren) {
   return (
-    <>
+    <AuthGuard>
       <NextTopLoader color="#2C528B" showSpinner={false} />
       
       <div className="flex min-h-screen layout-container">
@@ -23,7 +24,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
           </main>
         </div>
       </div>
-    </>
+    </AuthGuard>
   );
 }
 

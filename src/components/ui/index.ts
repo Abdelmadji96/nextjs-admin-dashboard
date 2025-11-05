@@ -21,7 +21,12 @@ export type { CardProps } from "./card";
 
 export { Badge, badgeVariants } from "./badge";
 
-export { Skeleton } from "./skeleton";
+export { 
+  Skeleton, 
+  SkeletonText, 
+  SkeletonAvatar, 
+  SkeletonCard 
+} from "./skeleton";
 
 export {
   Dialog,

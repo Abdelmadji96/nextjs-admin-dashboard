@@ -3,14 +3,30 @@
 import { SearchIcon } from "@/assets/icons";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSidebarContext } from "../sidebar/sidebar-context";
 import { MenuIcon } from "./icons";
 import { Notification } from "./notification";
 import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
 
+// Page title mapping
+const PAGE_TITLES: Record<string, string> = {
+  "/": "Statistics",
+  "/verify-identity": "Verify Identity",
+  "/verify-diploma": "Verify Diploma",
+  "/verify-user": "Verify User",
+  "/support": "Support",
+  "/sponsored-courses": "Sponsored Courses",
+  "/users": "User Management",
+};
+
 export function Header() {
   const { toggleSidebar, isMobile } = useSidebarContext();
+  const pathname = usePathname();
+  
+  // Get page title from pathname
+  const pageTitle = PAGE_TITLES[pathname] || "Dashboard";
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between bg-white/95 backdrop-blur-md px-4 py-5 dark:bg-gray-dark/95 md:px-5 2xl:px-10 border-b border-border/30 shadow-lg shadow-black/5 dark:shadow-black/20">
@@ -35,11 +51,10 @@ export function Header() {
         </Link>
       )}
 
-      <div className="max-xl:hidden bg-gradient-to-r from-primary to-primary-light bg-clip-text">
-        <h1 className="mb-0.5 text-heading-5 font-bold text-transparent drop-shadow-sm">
-          Dashboard
+      <div className="max-xl:hidden">
+        <h1 className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-heading-5 font-bold text-transparent drop-shadow-sm">
+          {pageTitle}
         </h1>
-        <p className="font-medium text-muted-foreground text-sm">Next.js Admin Dashboard Solution</p>
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">

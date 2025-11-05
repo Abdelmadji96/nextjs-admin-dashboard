@@ -45,16 +45,8 @@ export default function StatisticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-foreground mb-2 text-2xl font-bold">
-            Verification Statistics
-          </h1>
-          <p className="text-muted-foreground">
-            Overview of verification activities and performance metrics.
-          </p>
-        </div>
-
+      {/* Time Range Selector */}
+      <div className="flex items-center justify-end">
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value)}
