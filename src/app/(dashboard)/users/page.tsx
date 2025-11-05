@@ -4,6 +4,9 @@ import { useState } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Typography } from "@/components/ui/typography";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface User {
@@ -130,10 +133,12 @@ export default function UsersPage() {
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">User Management</h1>
-            <p className="text-muted-foreground">
+            <Typography variant="h2" className="mb-2">
+              User Management
+            </Typography>
+            <Typography variant="muted">
               Manage users, roles, and permissions for the verification dashboard.
-            </p>
+            </Typography>
           </div>
           
           <Button
@@ -149,19 +154,19 @@ export default function UsersPage() {
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="flex-1">
-              <input
+              <Input
                 type="text"
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full"
               />
             </div>
             
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="focus:ring-primary px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
@@ -261,30 +266,38 @@ export default function UsersPage() {
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card p-6 rounded-lg border border-border w-full max-w-md">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Create New User</h2>
+            <Typography variant="h4" className="mb-4">
+              Create New User
+            </Typography>
             
             <form className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Name</label>
-                <input
+                <Typography variant="label" className="mb-1 block">
+                  Name
+                </Typography>
+                <Input
                   type="text"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Enter user name"
+                  className="w-full"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Email</label>
-                <input
+                <Typography variant="label" className="mb-1 block">
+                  Email
+                </Typography>
+                <Input
                   type="email"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Enter email address"
+                  className="w-full"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Role</label>
-                <select className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                <Typography variant="label" className="mb-1 block">
+                  Role
+                </Typography>
+                <select className="focus:ring-primary w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2">
                   <option value="viewer">Viewer</option>
                   <option value="moderator">Moderator</option>
                   <option value="admin">Admin</option>
@@ -292,15 +305,14 @@ export default function UsersPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Permissions</label>
+                <Typography variant="label" className="mb-2 block">
+                  Permissions
+                </Typography>
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {allPermissions.map((permission) => (
-                    <label key={permission.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-border text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm text-foreground">{permission.label}</span>
+                    <label key={permission.id} className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox />
+                      <Typography variant="bodySmall">{permission.label}</Typography>
                     </label>
                   ))}
                 </div>

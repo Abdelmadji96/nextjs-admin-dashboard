@@ -181,6 +181,232 @@ if (isLoading) return <div className="animate-pulse bg-gray-200 h-20" />;
   }
   ```
 
+### **🔴 MANDATORY - ALWAYS Use UI Components from `src/components/ui`**
+
+**✅ ALWAYS use these UI components instead of raw HTML elements:**
+
+```tsx
+// ✅ CORRECT: Use UI components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Typography } from "@/components/ui/typography";
+
+// For buttons
+<Button variant="outline" size="sm" onClick={handleClick}>
+  Click Me
+</Button>
+
+// For inputs
+<Input
+  type="text"
+  placeholder="Enter text..."
+  value={value}
+  onChange={(e) => setValue(e.target.value)}
+  inputSize="sm"
+/>
+
+// For text/headings/labels
+<Typography variant="h4">Page Title</Typography>
+<Typography variant="label">Field Label</Typography>
+<Typography variant="caption">Small text</Typography>
+<Typography variant="muted">Muted text</Typography>
+
+// ❌ WRONG: Don't use raw HTML elements
+<button onClick={handleClick}>Click Me</button>
+<input type="text" value={value} onChange={onChange} />
+<h2>Page Title</h2>
+<span>Label</span>
+```
+
+**Available UI Components:**
+- `<Button>` - All buttons (variant: default, outline, ghost, destructive, link)
+- `<Input>` - All input fields (inputSize: sm, default, lg)
+- `<Typography>` - All text (variant: h1-h6, body, label, caption, muted, etc.)
+- `<Checkbox>` - Checkboxes with custom styling (variant: default, error)
+- `<Badge>` - Status badges
+- `<Card>` - Card layouts
+- `<Skeleton>` - Loading states
+- `<Table>` - Data tables
+
+**When to use raw HTML:**
+- Semantic elements like `<nav>`, `<main>`, `<section>`, `<article>`, `<header>`, `<footer>`
+- Form elements like `<form>`, `<fieldset>`, `<legend>`, `<label>` (wrapper only)
+- Radio buttons (native `<input type="radio">` is acceptable when styled)
+- List elements `<ul>`, `<ol>`, `<li>`
+- Table structure `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<td>` (but prefer Table component)
+
+**Code Review Checkpoint:**
+Before committing, verify:
+- [ ] All buttons use `<Button>` component
+- [ ] All inputs use `<Input>` component  
+- [ ] All text uses `<Typography>` component
+- [ ] All checkboxes use `<Checkbox>` component
+- [ ] No raw `<button>`, `<input type="text|email|password">`, `<input type="checkbox">`, `<h1-h6>`, `<p>`, `<span>` (except where semantically required)
+- [ ] Proper variants and sizes are applied
+
+### **📋 UI Component Migration Patterns - Quick Reference**
+
+**Typography Variants:**
+```tsx
+// Page/Section Titles
+<Typography variant="h1">Main Title</Typography>        // 4xl-5xl, extrabold
+<Typography variant="h2">Section Header</Typography>    // 3xl, semibold
+<Typography variant="h3">Subsection</Typography>        // 2xl, semibold
+<Typography variant="h4">Card Title</Typography>        // xl, semibold
+<Typography variant="h5">Small Header</Typography>      // lg, semibold
+<Typography variant="h6">Tiny Header</Typography>       // base, semibold
+
+// Body Text
+<Typography variant="body">Normal text</Typography>          // base, leading-7
+<Typography variant="bodyLarge">Large text</Typography>      // lg, leading-7
+<Typography variant="bodySmall">Small text</Typography>      // sm, leading-6
+
+// Special Text
+<Typography variant="label">Form Label</Typography>          // sm, font-medium
+<Typography variant="muted">Secondary text</Typography>      // sm, muted-foreground
+<Typography variant="caption">Tiny info</Typography>         // xs, text-placeholder
+<Typography variant="placeholder">Empty state</Typography>   // sm, text-placeholder
+```
+
+**Input Sizes:**
+```tsx
+<Input inputSize="sm" />      // h-8, text-xs, px-2 - Compact forms
+<Input inputSize="default" /> // h-10, text-sm, px-3 - Standard (default)
+<Input inputSize="lg" />      // h-12, text-base, px-4 - Login/prominent forms
+```
+
+**Button Variants & Sizes:**
+```tsx
+// Variants
+<Button variant="default">Primary Action</Button>
+<Button variant="primary">Main CTA</Button>
+<Button variant="outline">Secondary</Button>
+<Button variant="ghost">Subtle</Button>
+<Button variant="link">Link Style</Button>
+<Button variant="destructive">Delete</Button>
+
+// Sizes
+<Button size="sm">Small</Button>       // h-8, px-3, text-xs
+<Button size="default">Default</Button> // h-10, px-4, text-sm
+<Button size="lg">Large</Button>       // h-12, px-6, text-base
+<Button size="icon">Icon</Button>      // h-10, w-10
+```
+
+**Checkbox Component:**
+```tsx
+// Basic usage
+<Checkbox checked={isChecked} onCheckedChange={setIsChecked} />
+
+// With label
+<label className="flex items-center gap-2 cursor-pointer">
+  <Checkbox 
+    checked={filters.active} 
+    onCheckedChange={() => toggleFilter("active")}
+  />
+  <Typography variant="bodySmall">Active Users</Typography>
+</label>
+
+// Error variant
+<Checkbox variant="error" checked={hasError} onCheckedChange={setHasError} />
+
+// Disabled
+<Checkbox checked={true} disabled />
+```
+
+**Common Migration Patterns:**
+```tsx
+// ❌ BEFORE → ✅ AFTER
+
+// Headings
+<h1 className="text-2xl font-bold"> → <Typography variant="h2">
+<h2 className="text-xl font-semibold"> → <Typography variant="h3">
+<h3 className="text-lg font-medium"> → <Typography variant="h4">
+
+// Text
+<p className="text-muted-foreground"> → <Typography variant="muted">
+<span className="text-sm"> → <Typography variant="bodySmall">
+<label className="font-medium"> → <Typography variant="label">
+
+// Inputs
+<input type="text" className="..." /> → <Input type="text" />
+<input type="email" className="..." /> → <Input type="email" />
+<input type="password" className="..." /> → <Input type="password" />
+
+// Checkboxes
+<input type="checkbox" checked={value} onChange={...} /> → <Checkbox checked={value} onCheckedChange={...} />
+
+// Buttons
+<button className="bg-primary"> → <Button variant="primary">
+<button className="border"> → <Button variant="outline">
+```
+
+**Full Example:**
+```tsx
+// ❌ BEFORE
+export default function Page() {
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-foreground mb-2">
+        Page Title
+      </h2>
+      <p className="text-muted-foreground mb-4">
+        Description text here
+      </p>
+      <div>
+        <label className="text-sm font-medium mb-1 block">
+          Email
+        </label>
+        <input
+          type="email"
+          className="w-full px-3 py-2 border rounded"
+          placeholder="you@example.com"
+        />
+      </div>
+      <button className="px-4 py-2 bg-primary text-white rounded">
+        Submit
+      </button>
+    </div>
+  );
+}
+
+// ✅ AFTER
+import { Button, Input, Typography, Checkbox } from "@/components/ui";
+
+export default function Page() {
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  
+  return (
+    <div>
+      <Typography variant="h2" className="mb-2">
+        Page Title
+      </Typography>
+      <Typography variant="muted" className="mb-4">
+        Description text here
+      </Typography>
+      <div>
+        <Typography variant="label" className="mb-1 block">
+          Email
+        </Typography>
+        <Input
+          type="email"
+          placeholder="you@example.com"
+        />
+      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <Checkbox 
+          checked={acceptTerms} 
+          onCheckedChange={setAcceptTerms}
+        />
+        <Typography variant="bodySmall">Accept terms</Typography>
+      </label>
+      <Button variant="primary">
+        Submit
+      </Button>
+    </div>
+  );
+}
+```
+
 ## 9. 🎨 Design System & Color Chart - MANDATORY
 
 ### **STRICT RULE: Use ONLY colors from `src/css/style.css` CSS Custom Properties**

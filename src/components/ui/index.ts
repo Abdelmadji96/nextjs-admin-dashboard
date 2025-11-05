@@ -21,11 +21,14 @@ export type { CardProps } from "./card";
 
 export { Badge, badgeVariants } from "./badge";
 
-export { 
-  Skeleton, 
-  SkeletonText, 
-  SkeletonAvatar, 
-  SkeletonCard 
+export { Checkbox, checkboxVariants } from "./checkbox";
+export type { CheckboxProps } from "./checkbox";
+
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonAvatar,
+  SkeletonCard,
 } from "./skeleton";
 
 export {

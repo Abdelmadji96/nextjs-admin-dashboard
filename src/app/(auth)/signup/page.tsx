@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Button, Typography, Input, Card } from "@/components/ui";
+import { Button, Typography, Input, Card, Checkbox } from "@/components/ui";
 import { Check } from "lucide-react";
 import { GoogleIcon } from "@/assets/icons";
 
@@ -198,17 +198,13 @@ export default function SignUpPage() {
                 </div>
 
                 {/* Terms & Conditions */}
-                <div className="flex items-start">
-                  <input
+                <label htmlFor="terms" className="flex items-start cursor-pointer">
+                  <Checkbox
                     id="terms"
-                    type="checkbox"
-                    className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
+                    className="mt-1"
                     required
                   />
-                  <label
-                    htmlFor="terms"
-                    className="ml-2 text-sm text-text"
-                  >
+                  <Typography variant="bodySmall" className="ml-2 text-text">
                     I agree to the{" "}
                     <Button
                       variant="link"
@@ -227,8 +223,8 @@ export default function SignUpPage() {
                     >
                       <Link href="/privacy">Privacy Policy</Link>
                     </Button>
-                  </label>
-                </div>
+                  </Typography>
+                </label>
 
                 {/* Submit Button */}
                 <Button
