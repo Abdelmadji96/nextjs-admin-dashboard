@@ -3,19 +3,22 @@
 import { useState, useMemo } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { UserDetailModal } from "@/components/Modals/user-detail-modal";
-import { User } from "@/types/user";
-import { mockUsers } from "@/data/mockUsers";
+import { useFetch } from "@/hooks/useFetch";
+import { getCandidates } from "@/services/candidates.service";
+import type { CandidatesQueryParams, Candidate } from "@/types/candidate";
 import {
   SearchBar,
   QuickFilters,
   CheckboxFiltersComponent,
   UserTable,
+  UserTableSkeleton,
   ExportSection,
+  Pagination,
   CheckboxFilters,
 } from "@/components/verify-user";
 
 export default function VerifyUserPage() {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Candidate | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,11 +48,95 @@ export default function VerifyUserPage() {
     id_not_submitted: false,
   });
 
+  // Build query params based on filters
+  const queryParams = useMemo<CandidatesQueryParams>(() => {
+    const params: CandidatesQueryParams = {};
+
+    // Global search across id, first_name, last_name, email
+    if (searchTerm) {
+      const trimmedSearch = searchTerm.trim();
+      
+      // Send search term to all searchable fields
+      // The API will return results that match ANY of these fields
+      params.id = trimmedSearch;
+      params.first_name = trimmedSearch;
+      params.last_name = trimmedSearch;
+      params.email = trimmedSearch;
+    }
+
+    // Add date range
+    if (dateFrom) params.from_date = dateFrom;
+    if (dateTo) params.to_date = dateTo;
+
+    // Map checkbox filters to API params (comma-separated for multiple values)
+    // Identity status - can have multiple values
+    const identityStatuses: string[] = [];
+    if (filters.id_confirmed) identityStatuses.push("verified");
+    if (filters.id_pending) identityStatuses.push("pending");
+    if (filters.id_rejected) identityStatuses.push("canceled");
+    if (filters.id_not_submitted) identityStatuses.push("unverified");
+    if (identityStatuses.length > 0) {
+      params.identity_status = identityStatuses.join(",");
+    }
+
+    // Story/CV status - can have multiple values
+    // Include both checkbox filters and quick filters (CVP, 0CV, 1 draft)
+    const cvStatuses: string[] = [];
+    
+    // From checkbox filters
+    if (filters.story_published) cvStatuses.push("published");
+    if (filters.story_pending) cvStatuses.push("pending");
+    if (filters.story_rejected) cvStatuses.push("canceled");
+    if (filters.story_not_uploaded) cvStatuses.push("draft");
+    
+    // From quick filters
+    if (cvpFilter) cvStatuses.push("published");
+    if (zeroCvFilter) cvStatuses.push("none");
+    if (oneDraftFilter) cvStatuses.push("draft");
+    
+    // Remove duplicates and join
+    if (cvStatuses.length > 0) {
+      const uniqueCvStatuses = [...new Set(cvStatuses)];
+      params.cv_status = uniqueCvStatuses.join(",");
+    }
+
+    // Diploma status - can have multiple values
+    const diplomaStatuses: string[] = [];
+    if (filters.diploma_verified) diplomaStatuses.push("verified");
+    if (filters.diploma_verif_pending) diplomaStatuses.push("pending");
+    if (filters.diploma_verif_rejected) diplomaStatuses.push("canceled");
+    if (filters.no_diploma_submitted) diplomaStatuses.push("unverified");
+    if (diplomaStatuses.length > 0) {
+      params.diploma_status = diplomaStatuses.join(",");
+    }
+
+    return params;
+  }, [searchTerm, dateFrom, dateTo, filters, cvpFilter, zeroCvFilter, oneDraftFilter]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Fetch candidates from API
+  const { data: candidatesResponse, isLoading, error } = useFetch(
+    ["candidates", { ...queryParams, page: currentPage, limit: pageSize }],
+    () => getCandidates({ ...queryParams, page: currentPage, limit: pageSize }),
+    {
+      staleTime: 2 * 60 * 1000, // 2 minutes
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  // Get users array and pagination from response
+  const filteredUsers = candidatesResponse?.data?.data || [];
+  const paginationMeta = candidatesResponse?.data?.meta;
+
   const toggleFilter = (key: keyof CheckboxFilters) => {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const selectAllFilters = () => {
+    // Select all checkbox filters
     setFilters({
       no_diploma_submitted: true,
       diploma_verified: true,
@@ -64,9 +151,15 @@ export default function VerifyUserPage() {
       id_pending: true,
       id_not_submitted: true,
     });
+    
+    // Select all quick CV filters
+    setCvpFilter(true);
+    setZeroCvFilter(true);
+    setOneDraftFilter(true);
   };
 
   const clearAllFilters = () => {
+    // Clear all checkbox filters
     setFilters({
       no_diploma_submitted: false,
       diploma_verified: false,
@@ -81,75 +174,12 @@ export default function VerifyUserPage() {
       id_pending: false,
       id_not_submitted: false,
     });
+    
+    // Clear all quick CV filters
+    setCvpFilter(false);
+    setZeroCvFilter(false);
+    setOneDraftFilter(false);
   };
-
-  // Filtering logic
-  const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
-      // Search filter
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        !searchTerm ||
-        user.first_name?.toLowerCase().includes(searchLower) ||
-        user.last_name?.toLowerCase().includes(searchLower) ||
-        user.email?.toLowerCase().includes(searchLower) ||
-        user.uuid?.toLowerCase().includes(searchLower) ||
-        user.id.toString().includes(searchLower);
-
-      // Date range filter
-      const userDate = new Date(user.created_at);
-      const fromDate = dateFrom ? new Date(dateFrom) : null;
-      const toDate = dateTo ? new Date(dateTo) : null;
-
-      const matchesDateRange =
-        (!fromDate || userDate >= fromDate) && (!toDate || userDate <= toDate);
-
-      // Diploma verification filters
-      const hasDiplomas = user.cv.some((cv) => cv.diplomas?.length > 0);
-      const hasDiplomaVerified = user.cv.some((cv) =>
-        cv.diplomas?.some((d) => d.verification_status === "verified"),
-      );
-      const hasDiplomaRejected = user.cv.some((cv) =>
-        cv.diplomas?.some((d) => d.verification_status === "rejected"),
-      );
-      const hasDiplomaPending = user.cv.some((cv) =>
-        cv.diplomas?.some((d) => d.verification_status === "pending"),
-      );
-
-      const matchesDiplomaFilters =
-        (!filters.no_diploma_submitted || !hasDiplomas) &&
-        (!filters.diploma_verified || hasDiplomaVerified) &&
-        (!filters.diploma_verif_rejected || hasDiplomaRejected) &&
-        (!filters.diploma_verif_pending || hasDiplomaPending);
-
-      // Story/CV status filters (placeholder logic - adjust based on actual data structure)
-      const hasStory = user.cv.length > 0;
-      const matchesStoryFilters =
-        (!filters.story_not_uploaded || !hasStory) &&
-        (!filters.story_published || hasStory) &&
-        (!filters.story_rejected || false) &&
-        (!filters.story_pending || false);
-
-      // Identity verification filters
-      const matchesIdFilters =
-        (!filters.id_not_submitted ||
-          user.identity_verification_state === null) &&
-        (!filters.id_confirmed ||
-          user.identity_verification_state === "verified") &&
-        (!filters.id_rejected ||
-          user.identity_verification_state === "rejected") &&
-        (!filters.id_pending ||
-          user.identity_verification_state === "pending");
-
-      // If all filters are false, show all (no filter active)
-      const anyFilterActive = Object.values(filters).some((v) => v);
-      const matchesCheckboxFilters =
-        !anyFilterActive ||
-        (matchesDiplomaFilters && matchesStoryFilters && matchesIdFilters);
-
-      return matchesSearch && matchesDateRange && matchesCheckboxFilters;
-    });
-  }, [mockUsers, searchTerm, dateFrom, dateTo, filters]);
 
   const handleCopyId = (id: number) => {
     navigator.clipboard.writeText(id.toString());
@@ -157,15 +187,15 @@ export default function VerifyUserPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleViewDetails = (user: User) => {
+  const handleViewDetails = (user: Candidate) => {
     setSelectedUser(user);
     setIsDetailModalOpen(true);
   };
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-border bg-card shadow-sm">
-        <div className="border-b border-border p-6">
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-md dark:shadow-xl dark:shadow-black/20">
+        <div className="border-b border-border bg-muted/30 p-6 backdrop-blur-sm dark:bg-card/50">
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
           <div className="space-y-4">
@@ -201,12 +231,24 @@ export default function VerifyUserPage() {
           />
         </div>
 
-        <UserTable
-          users={filteredUsers}
-          copiedId={copiedId}
-          onCopyId={handleCopyId}
-          onViewDetails={handleViewDetails}
-        />
+        {isLoading ? (
+          <UserTableSkeleton />
+        ) : (
+          <>
+            <UserTable
+              users={filteredUsers}
+              copiedId={copiedId}
+              onCopyId={handleCopyId}
+              onViewDetails={handleViewDetails}
+            />
+            {paginationMeta && (
+              <Pagination
+                meta={paginationMeta}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            )}
+          </>
+        )}
       </div>
 
       {/* User Detail Modal */}

@@ -33,6 +33,14 @@ apiClient.interceptors.request.use(
   },
 );
 
+// Flag to track if logout is in progress
+let isLoggingOut = false;
+
+// Function to set logout flag (exported for use in logout)
+export const setLoggingOut = (value: boolean) => {
+  isLoggingOut = value;
+};
+
 // Response interceptor - Handle token refresh and errors
 apiClient.interceptors.response.use(
   (response) => {
@@ -41,8 +49,19 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If token expired (401) and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't retry if logging out or already on login/auth pages
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+    const isOnLoginPage = typeof window !== "undefined" && 
+      (window.location.pathname === "/login" || window.location.pathname === "/auth/sign-in");
+
+    // If token expired (401) and we haven't retried yet, and not logging out
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry && 
+      !isLoggingOut && 
+      !isAuthEndpoint &&
+      !isOnLoginPage
+    ) {
       originalRequest._retry = true;
 
       try {

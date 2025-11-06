@@ -49,38 +49,50 @@ export function QuickFilters({
         Clear All
       </Button>
 
-      {/* CVP Checkbox */}
-      <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 transition-colors hover:bg-muted">
+      {/* CVP Checkbox - Clickable Container */}
+      <div 
+        onClick={() => setCvpFilter(!cvpFilter)}
+        className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 shadow-sm transition-all hover:bg-muted hover:shadow dark:border-accent/50 dark:bg-card dark:hover:bg-accent/20"
+      >
         <Checkbox
           checked={cvpFilter}
           onCheckedChange={(checked) => setCvpFilter(checked as boolean)}
+          onClick={(e) => e.stopPropagation()}
         />
-        <Typography variant="label" className="text-sm">
+        <Typography variant="label" className="text-sm font-medium text-foreground">
           CVP
         </Typography>
-      </label>
+      </div>
 
-      {/* 0CV Checkbox */}
-      <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 transition-colors hover:bg-muted">
+      {/* 0CV Checkbox - Clickable Container */}
+      <div 
+        onClick={() => setZeroCvFilter(!zeroCvFilter)}
+        className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 shadow-sm transition-all hover:bg-muted hover:shadow dark:border-accent/50 dark:bg-card dark:hover:bg-accent/20"
+      >
         <Checkbox
           checked={zeroCvFilter}
           onCheckedChange={(checked) => setZeroCvFilter(checked as boolean)}
+          onClick={(e) => e.stopPropagation()}
         />
-        <Typography variant="label" className="text-sm">
+        <Typography variant="label" className="text-sm font-medium text-foreground">
           0CV
         </Typography>
-      </label>
+      </div>
 
-      {/* 1 draft Checkbox */}
-      <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 transition-colors hover:bg-muted">
+      {/* 1 draft Checkbox - Clickable Container */}
+      <div 
+        onClick={() => setOneDraftFilter(!oneDraftFilter)}
+        className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 shadow-sm transition-all hover:bg-muted hover:shadow dark:border-accent/50 dark:bg-card dark:hover:bg-accent/20"
+      >
         <Checkbox
           checked={oneDraftFilter}
           onCheckedChange={(checked) => setOneDraftFilter(checked as boolean)}
+          onClick={(e) => e.stopPropagation()}
         />
-        <Typography variant="label" className="text-sm">
+        <Typography variant="label" className="text-sm font-medium text-foreground">
           1 draft
         </Typography>
-      </label>
+      </div>
 
       <Button
         variant="ghost"

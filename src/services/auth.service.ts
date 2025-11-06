@@ -1,6 +1,17 @@
-import apiClient from "@/lib/api";
-import { saveAuthData, clearAuthData, updateAccessToken, getRefreshToken } from "@/lib/cookies";
-import type { LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse } from "@/types/auth";
+import apiClient, { setLoggingOut } from "@/lib/api";
+import {
+  saveAuthData,
+  clearAuthData,
+  updateAccessToken,
+  getRefreshToken,
+} from "@/lib/cookies";
+import { queryClient } from "@/lib/queryClient";
+import type {
+  LoginRequest,
+  LoginResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+} from "@/types/auth";
 
 /**
  * Login user
@@ -9,7 +20,7 @@ import type { LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResp
 export const login = async (credentials: LoginRequest): Promise<any> => {
   const response = await apiClient.post<LoginResponse>(
     "/auth/login",
-    credentials
+    credentials,
   );
 
   // Save encrypted auth data to cookies
@@ -29,15 +40,14 @@ export const login = async (credentials: LoginRequest): Promise<any> => {
  */
 export const refreshToken = async (): Promise<RefreshTokenResponse> => {
   const refresh_token = getRefreshToken();
-  
+
   if (!refresh_token) {
     throw new Error("No refresh token available");
   }
 
-  const response = await apiClient.post<RefreshTokenResponse>(
-    "/auth/refresh",
-    { refresh_token } as RefreshTokenRequest
-  );
+  const response = await apiClient.post<RefreshTokenResponse>("/auth/refresh", {
+    refresh_token,
+  } as RefreshTokenRequest);
 
   // Update access token in cookies
   updateAccessToken(response.data.access_token);
@@ -50,6 +60,15 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
  * Clears all auth data and redirects to login
  */
 export const logout = (): void => {
+  // Set logging out flag to prevent token refresh attempts
+  setLoggingOut(true);
+
+  // Cancel all ongoing queries to prevent 401 loops
+  queryClient.cancelQueries();
+
+  // Clear React Query cache
+  queryClient.clear();
+
   // Clear all auth cookies
   clearAuthData();
 
@@ -57,4 +76,9 @@ export const logout = (): void => {
   if (typeof window !== "undefined") {
     window.location.href = "/login";
   }
+
+  // Reset flag after a short delay (in case redirect takes time)
+  setTimeout(() => {
+    setLoggingOut(false);
+  }, 1000);
 };

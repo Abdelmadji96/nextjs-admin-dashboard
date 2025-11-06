@@ -21,11 +21,11 @@ export function CheckboxFiltersComponent({
   setDateTo,
 }: CheckboxFiltersComponentProps) {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-3">
+    <div className="space-y-4 rounded-lg bg-muted/20 p-4 dark:bg-accent/5">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-3">
         {/* Diploma Verification */}
-        <div className="space-y-2">
-          <Typography variant="label" className="mb-2 text-sm">
+        <div className="space-y-3 rounded-md border border-border/50 bg-card p-4 dark:bg-accent/10">
+          <Typography variant="label" className="mb-2 text-sm font-semibold text-foreground">
             Diploma Verification
           </Typography>
           <label className="flex cursor-pointer items-center gap-2">
@@ -67,8 +67,8 @@ export function CheckboxFiltersComponent({
         </div>
 
         {/* Story/CV Status */}
-        <div className="space-y-2">
-          <Typography variant="label" className="mb-2 text-sm">
+        <div className="space-y-3 rounded-md border border-border/50 bg-card p-4 dark:bg-accent/10">
+          <Typography variant="label" className="mb-2 text-sm font-semibold text-foreground">
             Story Status
           </Typography>
           <label className="flex cursor-pointer items-center gap-2">
@@ -110,8 +110,8 @@ export function CheckboxFiltersComponent({
         </div>
 
         {/* Identity Verification */}
-        <div className="space-y-2">
-          <Typography variant="label" className="mb-2 text-sm">
+        <div className="space-y-3 rounded-md border border-border/50 bg-card p-4 dark:bg-accent/10">
+          <Typography variant="label" className="mb-2 text-sm font-semibold text-foreground">
             Identity Verification
           </Typography>
           <label className="flex cursor-pointer items-center gap-2">
@@ -154,30 +154,30 @@ export function CheckboxFiltersComponent({
       </div>
 
       {/* Date Range - One Line at Bottom */}
-      <div className="flex flex-wrap items-center gap-4 border-t border-border pt-4">
-        <Typography variant="label" className="text-sm">
+      <div className="flex flex-wrap items-center gap-4 rounded-md border border-border/50 bg-card p-4 dark:bg-accent/10">
+        <Typography variant="label" className="text-sm font-semibold text-foreground">
           Date Range:
         </Typography>
         <div className="flex items-center gap-2">
-          <Typography variant="caption">From:</Typography>
+          <Typography variant="caption" className="font-medium text-muted-foreground">From:</Typography>
           <Input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
             placeholder="DD/MM/YYYY"
             inputSize="sm"
-            className="w-40"
+            className="w-40 dark:bg-background"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Typography variant="caption">To:</Typography>
+          <Typography variant="caption" className="font-medium text-muted-foreground">To:</Typography>
           <Input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
             placeholder="DD/MM/YYYY"
             inputSize="sm"
-            className="w-40"
+            className="w-40 dark:bg-background"
           />
         </div>
       </div>

@@ -4,28 +4,28 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80 dark:shadow-sm dark:shadow-primary/20",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:shadow-sm dark:shadow-secondary/10",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80 dark:shadow-sm dark:shadow-destructive/20",
+        outline: "text-foreground border-border dark:border-accent/30",
         // Custom variants for verification status
-        success: "border-transparent bg-success/10 text-success",
-        warning: "border-transparent bg-warning/10 text-warning",
-        pending: "border-transparent bg-warning/10 text-warning",
-        approved: "border-transparent bg-success/10 text-success",
-        rejected: "border-transparent bg-destructive/10 text-destructive",
-        "under-review": "border-transparent bg-primary/10 text-primary",
+        success: "border-transparent bg-success/10 text-success dark:bg-success/20 dark:text-success dark:shadow-sm dark:shadow-success/10",
+        warning: "border-transparent bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning dark:shadow-sm dark:shadow-warning/10",
+        pending: "border-transparent bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning dark:shadow-sm dark:shadow-warning/10",
+        approved: "border-transparent bg-success/10 text-success dark:bg-success/20 dark:text-success dark:shadow-sm dark:shadow-success/10",
+        rejected: "border-transparent bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive dark:shadow-sm dark:shadow-destructive/10",
+        "under-review": "border-transparent bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light dark:shadow-sm dark:shadow-primary/10",
         // Priority badges
-        "priority-high": "border-transparent bg-destructive/10 text-destructive",
-        "priority-medium": "border-transparent bg-warning/10 text-warning",
-        "priority-low": "border-transparent bg-muted text-muted-foreground",
+        "priority-high": "border-transparent bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive dark:shadow-sm dark:shadow-destructive/10",
+        "priority-medium": "border-transparent bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning dark:shadow-sm dark:shadow-warning/10",
+        "priority-low": "border-transparent bg-muted text-muted-foreground dark:bg-muted/50 dark:shadow-sm dark:shadow-muted/10",
       },
     },
     defaultVariants: {

@@ -6,6 +6,7 @@
 - Use the App Router directory structure
 - Place components in `app` directory for route-specific components
 - Place shared components in `components` directory
+- **ALWAYS** place all TypeScript interfaces and types in the `src/types` folder
 
 ## Components
 - Use Server Components by default
@@ -14,6 +15,66 @@
 - Use dynamic loading for non-critical components
 - Implement proper error boundaries
 - Place static content at file end and interfaces in types folder
+
+## Types Organization - MANDATORY
+
+**✅ ALWAYS separate types into dedicated files in `src/types/` folder:**
+
+```typescript
+// ✅ CORRECT: Types in separate file
+// src/types/candidate.ts
+export interface Candidate {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  // ...other fields
+}
+
+export interface CandidatesQueryParams {
+  page?: number;
+  limit?: number;
+  // ...other params
+}
+
+// src/services/candidates.service.ts
+import type { Candidate, CandidatesQueryParams } from "@/types/candidate";
+
+// Re-export for convenience
+export type { Candidate, CandidatesQueryParams } from "@/types/candidate";
+
+export const getCandidates = async (params?: CandidatesQueryParams) => {
+  // implementation
+};
+
+// src/components/user-table.tsx
+import type { Candidate } from "@/types/candidate";
+```
+
+**❌ NEVER define types directly in service files:**
+
+```typescript
+// ❌ WRONG: Types defined in service file
+// src/services/candidates.service.ts
+export interface Candidate {  // Should be in src/types/candidate.ts
+  id: number;
+  // ...
+}
+
+export const getCandidates = async () => {
+  // implementation
+};
+```
+
+**Type File Naming Convention:**
+- Use singular form: `candidate.ts`, `user.ts`, `order.ts`
+- Group related types in the same file
+- Use clear, descriptive names
+
+**Type Import Rules:**
+- ALWAYS use `import type` for type-only imports
+- Import types from `@/types/` folder, not from service files
+- Services can re-export types for convenience but types should live in `@/types/`
 
 ## 2. Separation of Concerns  
 - **Components**  

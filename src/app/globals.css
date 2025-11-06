@@ -84,39 +84,41 @@
 
   /* ===== Dark Mode Colors ===== */
   .dark {
-    --color-background: #020D1A;
-    --color-foreground: #9CA3AF;
-    --color-card: #1F2A37;
-    --color-card-foreground: #9CA3AF;
-    --color-muted: #374151;
-    --color-muted-foreground: #6B7280;
-    --color-border: #374151;
-    --color-stroke: #27303E;
+    /* Enhanced dark theme with better contrast and depth */
+    --color-background: #0A0E1A;
+    --color-foreground: #E5E7EB;
+    --color-card: #13172A;
+    --color-card-foreground: #E5E7EB;
+    --color-muted: #1E2438;
+    --color-muted-foreground: #9CA3AF;
+    --color-border: #1E2438;
+    --color-stroke: #1E2438;
     
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
+    /* Semantic theme colors */
+    --background: 216 36% 6%;
+    --foreground: 220 17% 90%;
+    --card: 216 36% 9%;
+    --card-foreground: 220 17% 90%;
+    --popover: 216 36% 9%;
+    --popover-foreground: 220 17% 90%;
+    --primary: 220 59% 20%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 216 24% 15%;
+    --secondary-foreground: 220 17% 90%;
+    --muted: 216 24% 15%;
+    --muted-foreground: 220 9% 60%;
+    --accent: 220 59% 30%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 216 24% 15%;
+    --input: 216 24% 15%;
+    --ring: 220 59% 50%;
+    --chart-1: 220 70% 55%;
+    --chart-2: 160 60% 50%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 72% 51%;
   }
 
   /* ===== Base Styles ===== */
@@ -819,5 +821,42 @@ input[type="search"]::-webkit-search-cancel-button {
   
   .custom-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Enhanced Dark Theme Utilities */
+  .dark-card-glow {
+    @apply dark:shadow-lg dark:shadow-primary/5;
+  }
+  
+  .dark-hover-lift {
+    @apply transition-all duration-200 hover:scale-[1.01] dark:hover:shadow-lg dark:hover:shadow-primary/10;
+  }
+  
+  .dark-border-glow {
+    @apply dark:border-accent/30 dark:shadow-sm dark:shadow-accent/5;
+  }
+
+  /* Improved table styling for dark mode */
+  .dark table thead {
+    @apply dark:bg-accent/5;
+  }
+  
+  .dark table tbody tr {
+    @apply dark:hover:bg-accent/10;
+  }
+
+  /* Enhanced input styling for dark mode */
+  .dark input[type="date"],
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="search"] {
+    @apply dark:bg-background dark:text-foreground dark:border-border;
+  }
+
+  .dark input[type="date"]:focus,
+  .dark input[type="text"]:focus,
+  .dark input[type="email"]:focus,
+  .dark input[type="search"]:focus {
+    @apply dark:border-accent dark:ring-accent/20;
   }
 }

@@ -1,15 +1,15 @@
 "use client";
 
 import { Badge, Button, Typography } from "@/components/ui";
-import { User } from "@/types/user";
-import { Calendar, Check, Copy, Eye } from "lucide-react";
+import type { Candidate } from "@/types/candidate";
+import { Calendar, Check, Copy, Eye, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserTableProps {
-  users: User[];
+  users: Candidate[];
   copiedId: number | null;
   onCopyId: (id: number) => void;
-  onViewDetails: (user: User) => void;
+  onViewDetails: (user: Candidate) => void;
 }
 
 export function UserTable({
@@ -18,35 +18,34 @@ export function UserTable({
   onCopyId,
   onViewDetails,
 }: UserTableProps) {
-  const getStatusBadge = (user: User) => {
-    const hasIdentityVerified =
-      user.identity_verification_state === "verified";
-    const hasDiplomaVerified = user.cv.some((cv) =>
-      cv.diplomas?.some((d) => d.verification_status === "verified"),
-    );
+  const getStatusBadge = (user: Candidate) => {
+    const hasIdentityVerified = user.identity_verification_state === "verified";
+    const hasDiplomaVerified = user.stats.diplomas.verified > 0;
+    const hasCVPublished = user.cv?.status === "published";
 
-    if (hasIdentityVerified && hasDiplomaVerified) {
+    // Fully verified: identity + diploma + CV published
+    if (hasIdentityVerified && hasDiplomaVerified && hasCVPublished) {
       return (
         <Badge variant="success" className="text-xs">
           Verified
         </Badge>
       );
-    } else if (
+    } 
+    // Pending: any pending items
+    else if (
       user.identity_verification_state === "pending" ||
-      user.cv.some((cv) =>
-        cv.diplomas?.some((d) => d.verification_status === "pending"),
-      )
+      user.stats.diplomas.pending > 0
     ) {
       return (
         <Badge variant="warning" className="text-xs">
           Pending
         </Badge>
       );
-    } else if (
-      user.identity_verification_state === "rejected" ||
-      user.cv.some((cv) =>
-        cv.diplomas?.some((d) => d.verification_status === "rejected"),
-      )
+    } 
+    // Canceled/Rejected
+    else if (
+      user.identity_verification_state === "canceled" ||
+      user.stats.diplomas.canceled > 0
     ) {
       return (
         <Badge variant="destructive" className="text-xs">
@@ -54,6 +53,7 @@ export function UserTable({
         </Badge>
       );
     }
+    // Incomplete
     return (
       <Badge variant="secondary" className="text-xs">
         Incomplete
@@ -65,54 +65,54 @@ export function UserTable({
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-border bg-muted/30">
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+          <tr className="bg-muted/50 border-b-2 border-border backdrop-blur-sm">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               ID
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Full Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Date
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               ID Verif
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Diploma Verif
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
-              Organization
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              CV Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase text-muted-foreground">
+            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-border/50 divide-y">
           {users.map((user) => (
             <tr
               key={user.id}
-              className="border-b border-border transition-colors hover:bg-muted/20"
+              className="hover:bg-muted/40 group transition-all duration-150 dark:hover:bg-accent/10"
             >
               {/* ID */}
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  <code className="rounded bg-muted px-2 py-1 font-mono text-xs">
+                  <code className="bg-muted/80 ring-border/50 rounded px-2.5 py-1.5 font-mono text-xs font-medium text-foreground ring-1 dark:bg-accent/20 dark:ring-accent/30">
                     {user.id}
                   </code>
                   <button
                     onClick={() => onCopyId(user.id)}
-                    className="rounded p-1 transition-colors hover:bg-muted"
+                    className="rounded p-1.5 transition-all hover:bg-muted dark:hover:bg-accent/30"
                     title={`Copy ID: ${user.id}`}
                   >
                     {copiedId === user.id ? (
-                      <Check className="h-3 w-3 text-success" />
+                      <Check className="h-3.5 w-3.5 text-success" />
                     ) : (
-                      <Copy className="h-3 w-3 text-muted-foreground" />
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-foreground" />
                     )}
                   </button>
                 </div>
@@ -121,10 +121,16 @@ export function UserTable({
               {/* Full Name */}
               <td className="px-6 py-4">
                 <div>
-                  <Typography variant="bodySmall" className="font-medium text-foreground">
+                  <Typography
+                    variant="bodySmall"
+                    className="font-medium text-foreground"
+                  >
                     {user.first_name} {user.last_name}
                   </Typography>
-                  <Typography variant="caption" className="text-muted-foreground">
+                  <Typography
+                    variant="caption"
+                    className="text-muted-foreground"
+                  >
                     {user.email}
                   </Typography>
                 </div>
@@ -148,7 +154,7 @@ export function UserTable({
                     ? "✓"
                     : user.identity_verification_state === "pending"
                       ? "⏳"
-                      : user.identity_verification_state === "rejected"
+                      : user.identity_verification_state === "canceled"
                         ? "✗"
                         : "-"}
                 </Typography>
@@ -157,35 +163,27 @@ export function UserTable({
               {/* Diploma Verif */}
               <td className="px-6 py-4">
                 <Typography variant="bodySmall" className="text-foreground">
-                  {user.cv.some((cv) =>
-                    cv.diplomas?.some(
-                      (d) => d.verification_status === "verified",
-                    ),
-                  )
+                  {user.stats.diplomas.verified > 0
                     ? "✓"
-                    : user.cv.some((cv) =>
-                          cv.diplomas?.some(
-                            (d) => d.verification_status === "pending",
-                          ),
-                        )
+                    : user.stats.diplomas.pending > 0
                       ? "⏳"
-                      : user.cv.some((cv) =>
-                            cv.diplomas?.some(
-                              (d) => d.verification_status === "rejected",
-                            ),
-                          )
+                      : user.stats.diplomas.canceled > 0
                         ? "✗"
                         : "-"}
                 </Typography>
               </td>
 
-              {/* Organization */}
+              {/* CV Status */}
               <td className="px-6 py-4">
-                <Typography variant="bodySmall" className="text-muted-foreground">
-                  {user.cv.reduce(
-                    (total, cv) => total + (cv.experiences?.length || 0),
-                    0,
-                  )}
+                <Typography
+                  variant="bodySmall"
+                  className="text-muted-foreground"
+                >
+                  {user.cv?.status === "published" 
+                    ? "Published" 
+                    : user.cv?.status === "draft"
+                      ? "Draft"
+                      : "No CV"}
                 </Typography>
               </td>
 
@@ -196,7 +194,7 @@ export function UserTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onViewDetails(user)}
-                    className="gap-2"
+                    className="gap-2 text-foreground dark:text-foreground dark:hover:bg-accent/30"
                   >
                     <Eye className="h-4 w-4" />
                     View
@@ -209,13 +207,23 @@ export function UserTable({
       </table>
 
       {users.length === 0 && (
-        <div className="py-12 text-center">
-          <Typography variant="muted" className="text-sm">
-            No users found matching your filters.
+        <div className="flex flex-col items-center justify-center px-4 py-16">
+          {/* Empty State Icon */}
+          <div className="bg-muted/50 mb-6 flex h-24 w-24 items-center justify-center rounded-full dark:bg-accent/10">
+            <Users className="h-12 w-12 text-muted-foreground" strokeWidth={1.5} />
+          </div>
+
+          {/* Empty State Text */}
+          <Typography variant="h4" className="mb-2 text-foreground">
+            No users found
+          </Typography>
+          <Typography variant="muted" className="max-w-md text-center">
+            We couldn't find any users matching your current filters. Try
+            adjusting your search criteria or clear all filters to see more
+            results.
           </Typography>
         </div>
       )}
     </div>
   );
 }
-
