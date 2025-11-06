@@ -55,13 +55,7 @@ export default function VerifyUserPage() {
     // Global search across id, first_name, last_name, email
     if (searchTerm) {
       const trimmedSearch = searchTerm.trim();
-      
-      // Send search term to all searchable fields
-      // The API will return results that match ANY of these fields
-      params.id = trimmedSearch;
-      params.first_name = trimmedSearch;
-      params.last_name = trimmedSearch;
-      params.email = trimmedSearch;
+      params.search = trimmedSearch;
     }
 
     // Add date range
@@ -82,18 +76,18 @@ export default function VerifyUserPage() {
     // Story/CV status - can have multiple values
     // Include both checkbox filters and quick filters (CVP, 0CV, 1 draft)
     const cvStatuses: string[] = [];
-    
+
     // From checkbox filters
     if (filters.story_published) cvStatuses.push("published");
     if (filters.story_pending) cvStatuses.push("pending");
     if (filters.story_rejected) cvStatuses.push("canceled");
     if (filters.story_not_uploaded) cvStatuses.push("draft");
-    
+
     // From quick filters
     if (cvpFilter) cvStatuses.push("published");
     if (zeroCvFilter) cvStatuses.push("none");
     if (oneDraftFilter) cvStatuses.push("draft");
-    
+
     // Remove duplicates and join
     if (cvStatuses.length > 0) {
       const uniqueCvStatuses = [...new Set(cvStatuses)];
@@ -111,20 +105,32 @@ export default function VerifyUserPage() {
     }
 
     return params;
-  }, [searchTerm, dateFrom, dateTo, filters, cvpFilter, zeroCvFilter, oneDraftFilter]);
+  }, [
+    searchTerm,
+    dateFrom,
+    dateTo,
+    filters,
+    cvpFilter,
+    zeroCvFilter,
+    oneDraftFilter,
+  ]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Fetch candidates from API
-  const { data: candidatesResponse, isLoading, error } = useFetch(
+  const {
+    data: candidatesResponse,
+    isLoading,
+    error,
+  } = useFetch(
     ["candidates", { ...queryParams, page: currentPage, limit: pageSize }],
     () => getCandidates({ ...queryParams, page: currentPage, limit: pageSize }),
     {
       staleTime: 2 * 60 * 1000, // 2 minutes
       refetchOnWindowFocus: false,
-    }
+    },
   );
 
   // Get users array and pagination from response
@@ -151,7 +157,7 @@ export default function VerifyUserPage() {
       id_pending: true,
       id_not_submitted: true,
     });
-    
+
     // Select all quick CV filters
     setCvpFilter(true);
     setZeroCvFilter(true);
@@ -174,7 +180,7 @@ export default function VerifyUserPage() {
       id_pending: false,
       id_not_submitted: false,
     });
-    
+
     // Clear all quick CV filters
     setCvpFilter(false);
     setZeroCvFilter(false);
@@ -195,7 +201,7 @@ export default function VerifyUserPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-md dark:shadow-xl dark:shadow-black/20">
-        <div className="border-b border-border bg-muted/30 p-6 backdrop-blur-sm dark:bg-card/50">
+        <div className="bg-muted/30 dark:bg-card/50 border-b border-border p-6 backdrop-blur-sm">
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
           <div className="space-y-4">

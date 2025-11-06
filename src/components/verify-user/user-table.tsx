@@ -1,9 +1,13 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { Badge, Button, Typography } from "@/components/ui";
 import type { Candidate } from "@/types/candidate";
-import { Calendar, Check, Copy, Eye, Users } from "lucide-react";
+import { Calendar, Check, Copy, Eye, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type SortField = "id" | "name" | "date";
+type SortDirection = "asc" | "desc" | null;
 
 interface UserTableProps {
   users: Candidate[];
@@ -18,6 +22,64 @@ export function UserTable({
   onCopyId,
   onViewDetails,
 }: UserTableProps) {
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  // Handle column sort
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortDirection(null);
+        setSortField(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  // Sort users based on current sort state
+  const sortedUsers = useMemo(() => {
+    if (!sortField || !sortDirection) {
+      return users;
+    }
+
+    return [...users].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "id":
+          comparison = a.id - b.id;
+          break;
+        case "name":
+          const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
+          const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
+          comparison = nameA.localeCompare(nameB);
+          break;
+        case "date":
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          comparison = dateA - dateB;
+          break;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [users, sortField, sortDirection]);
+
+  // Render sort icon
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-1 h-3.5 w-3.5 opacity-50" />;
+    }
+    if (sortDirection === "asc") {
+      return <ArrowUp className="ml-1 h-3.5 w-3.5" />;
+    }
+    return <ArrowDown className="ml-1 h-3.5 w-3.5" />;
+  };
   const getStatusBadge = (user: Candidate) => {
     const hasIdentityVerified = user.identity_verification_state === "verified";
     const hasDiplomaVerified = user.stats.diplomas.verified > 0;
@@ -66,15 +128,39 @@ export function UserTable({
       <table className="w-full">
         <thead>
           <tr className="bg-muted/50 border-b-2 border-border backdrop-blur-sm">
-            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              ID
+            {/* Sortable: ID */}
+            <th 
+              className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+              onClick={() => handleSort("id")}
+            >
+              <div className="flex items-center">
+                ID
+                {renderSortIcon("id")}
+              </div>
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Full Name
+            
+            {/* Sortable: Full Name */}
+            <th 
+              className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+              onClick={() => handleSort("name")}
+            >
+              <div className="flex items-center">
+                Full Name
+                {renderSortIcon("name")}
+              </div>
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Date
+            
+            {/* Sortable: Date */}
+            <th 
+              className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+              onClick={() => handleSort("date")}
+            >
+              <div className="flex items-center">
+                Date
+                {renderSortIcon("date")}
+              </div>
             </th>
+            
             <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </th>
@@ -93,7 +179,7 @@ export function UserTable({
           </tr>
         </thead>
         <tbody className="divide-border/50 divide-y">
-          {users.map((user) => (
+          {sortedUsers.map((user) => (
             <tr
               key={user.id}
               className="hover:bg-muted/40 group transition-all duration-150 dark:hover:bg-accent/10"
@@ -206,7 +292,7 @@ export function UserTable({
         </tbody>
       </table>
 
-      {users.length === 0 && (
+      {sortedUsers.length === 0 && (
         <div className="flex flex-col items-center justify-center px-4 py-16">
           {/* Empty State Icon */}
           <div className="bg-muted/50 mb-6 flex h-24 w-24 items-center justify-center rounded-full dark:bg-accent/10">

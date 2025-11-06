@@ -83,10 +83,7 @@ export interface CandidatesQueryParams {
   page?: number;
   limit?: number;
   sortBy?: string;
-  id?: string;
-  first_name?: string;
-  last_name?: string;
-  email?: string;
+  search?: string;
   reference?: string;
   identity_status?: string;
   from_date?: string;

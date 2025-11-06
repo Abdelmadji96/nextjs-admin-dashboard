@@ -41,6 +41,26 @@ export const setLoggingOut = (value: boolean) => {
   isLoggingOut = value;
 };
 
+// Token refresh state management
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+
+/**
+ * Subscribe to token refresh
+ * When token is refreshed, all subscribers will be notified
+ */
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+/**
+ * Notify all subscribers that token has been refreshed
+ */
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+};
+
 // Response interceptor - Handle token refresh and errors
 apiClient.interceptors.response.use(
   (response) => {
@@ -64,22 +84,46 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
+      // If already refreshing, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
       try {
+        console.log("[API] Token expired, attempting to refresh...");
+        
         // Attempt to refresh the token using auth service
         const { access_token } = await refreshToken();
+
+        console.log("[API] Token refreshed successfully");
+
+        // Notify all queued requests that token is refreshed
+        onTokenRefreshed(access_token);
 
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
+        console.error("[API] Token refresh failed:", refreshError);
+        
         // Refresh failed, clear tokens and redirect to login
         clearAuthData();
 
         if (typeof window !== "undefined") {
+          console.log("[API] Redirecting to login...");
           window.location.href = "/login";
         }
 
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

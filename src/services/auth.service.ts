@@ -6,6 +6,7 @@ import {
   getRefreshToken,
 } from "@/lib/cookies";
 import { queryClient } from "@/lib/queryClient";
+import { initTokenRefresh, stopTokenRefresh } from "@/lib/tokenRefreshManager";
 import type {
   LoginRequest,
   LoginResponse,
@@ -26,6 +27,9 @@ export const login = async (credentials: LoginRequest): Promise<any> => {
   // Save encrypted auth data to cookies
   saveAuthData(response.data);
 
+  // Initialize automatic token refresh
+  initTokenRefresh();
+
   // Return structure compatible with usePost hook
   return {
     ...response.data,
@@ -42,17 +46,34 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
   const refresh_token = getRefreshToken();
 
   if (!refresh_token) {
+    console.error("[Auth] No refresh token available");
     throw new Error("No refresh token available");
   }
 
-  const response = await apiClient.post<RefreshTokenResponse>("/auth/refresh", {
-    refresh_token,
-  } as RefreshTokenRequest);
+  try {
+    console.log("[Auth] Sending refresh token request...");
+    
+    const response = await apiClient.post<RefreshTokenResponse>("/auth/refresh", {
+      refresh_token,
+    } as RefreshTokenRequest);
 
-  // Update access token in cookies
-  updateAccessToken(response.data.access_token);
+    // Update access token in cookies
+    updateAccessToken(response.data.access_token);
 
-  return response.data;
+    console.log("[Auth] Access token updated successfully");
+
+    return response.data;
+  } catch (error: any) {
+    console.error("[Auth] Refresh token request failed:", error.response?.data || error.message);
+    
+    // If refresh token is invalid or expired, clear auth data
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log("[Auth] Refresh token expired or invalid, clearing auth data");
+      clearAuthData();
+    }
+    
+    throw error;
+  }
 };
 
 /**
@@ -62,6 +83,9 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
 export const logout = (): void => {
   // Set logging out flag to prevent token refresh attempts
   setLoggingOut(true);
+
+  // Stop automatic token refresh
+  stopTokenRefresh();
 
   // Cancel all ongoing queries to prevent 401 loops
   queryClient.cancelQueries();

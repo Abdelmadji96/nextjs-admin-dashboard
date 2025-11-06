@@ -18,45 +18,12 @@ export type {
   PaginationLinks,
 } from "@/types/candidate";
 
-/**
- * Fetches paginated list of candidates with optional filters
- * 
- * @param params - Query parameters for filtering, pagination, and sorting
- * @returns Promise<CandidatesResponse> - API response with candidates data
- * 
- * @example
- * ```tsx
- * // Basic usage
- * const candidates = await getCandidates({ page: 1, limit: 10 });
- * 
- * // Global search across ID, name, and email
- * const searchResults = await getCandidates({
- *   id: "searchTerm",
- *   first_name: "searchTerm",
- *   last_name: "searchTerm",
- *   email: "searchTerm",
- *   page: 1,
- *   limit: 10
- * });
- * 
- * // With filters
- * const filteredCandidates = await getCandidates({
- *   identity_status: "verified,pending",
- *   cv_status: "published",
- *   from_date: "2025-01-01",
- *   page: 1,
- *   limit: 20
- * });
- * ```
- */
 export const getCandidates = async (
-  params?: CandidatesQueryParams
+  params?: CandidatesQueryParams,
 ): Promise<CandidatesResponse> => {
-  // Default parameters
   const defaultParams: CandidatesQueryParams = {
     page: 1,
     limit: 10,
-    sortBy: "created_at:DESC",
     ...params,
   };
 
@@ -68,7 +35,7 @@ export const getCandidates = async (
       }
       return acc;
     },
-    {} as Record<string, string | number>
+    {} as Record<string, string | number>,
   );
 
   const response = await apiClient.get<CandidatesResponse>("/candidates", {
