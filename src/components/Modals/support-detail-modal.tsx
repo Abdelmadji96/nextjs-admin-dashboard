@@ -167,16 +167,6 @@ export function SupportDetailModal({
                   <p className="text-foreground font-medium">{ticket.details.phone}</p>
                 </div>
               )}
-              {ticket.details?.user_type && (
-                <div className="bg-muted rounded-lg p-4">
-                  <label className="text-muted-foreground mb-1 block text-sm font-medium">
-                    User Type
-                  </label>
-                  <p className="text-foreground font-medium capitalize">
-                    {ticket.details.user_type}
-                  </p>
-                </div>
-              )}
             </div>
           </section>
 

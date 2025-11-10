@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { UserDetailModal } from "@/components/Modals/user-detail-modal";
 import { useFetch } from "@/hooks/useFetch";
+import { useDebounce } from "@/hooks/useDebounce";
 import { getCandidates } from "@/services/candidates.service";
 import type { CandidatesQueryParams, Candidate } from "@/types/candidate";
 import {
@@ -22,6 +23,7 @@ export default function VerifyUserPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -52,9 +54,9 @@ export default function VerifyUserPage() {
   const queryParams = useMemo<CandidatesQueryParams>(() => {
     const params: CandidatesQueryParams = {};
 
-    // Global search across id, first_name, last_name, email
-    if (searchTerm) {
-      const trimmedSearch = searchTerm.trim();
+    // Global search across id, first_name, last_name, email (debounced)
+    if (debouncedSearchTerm) {
+      const trimmedSearch = debouncedSearchTerm.trim();
       params.search = trimmedSearch;
     }
 
@@ -106,7 +108,7 @@ export default function VerifyUserPage() {
 
     return params;
   }, [
-    searchTerm,
+    debouncedSearchTerm,
     dateFrom,
     dateTo,
     filters,
@@ -198,6 +200,19 @@ export default function VerifyUserPage() {
     setIsDetailModalOpen(true);
   };
 
+  const fetchAllDataForExport = async (): Promise<Candidate[]> => {
+    try {
+      const response = await getCandidates({
+        ...queryParams,
+        paginate: 0, // Fetch all data without pagination
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error("[Export] Failed to fetch all data:", error);
+      throw error;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-md dark:shadow-xl dark:shadow-black/20">
@@ -234,6 +249,7 @@ export default function VerifyUserPage() {
             filteredUsers={filteredUsers}
             isExporting={isExporting}
             setIsExporting={setIsExporting}
+            fetchAllData={fetchAllDataForExport}
           />
         </div>
 

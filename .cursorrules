@@ -128,10 +128,37 @@ export const useCreateOrder = () => {
 };
 ```
 
+**❌ NEVER call API directly (apiClient.get/post/patch/delete) in components:**
+
+```tsx
+// ❌ WRONG: Direct API call in component
+const handleApprove = async () => {
+  await apiClient.patch(`/candidates/${id}/approve`);
+};
+
+// ✅ CORRECT: Use service function + usePost
+// 1. Create service function in src/services/
+export const approveCandidate = async (id: number) => {
+  const response = await apiClient.patch(`/candidates/${id}/approve`);
+  return response.data;
+};
+
+// 2. Use usePost in component
+const { mutate: approve, isPending } = usePost(approveCandidate);
+
+const handleApprove = () => {
+  approve(id, {
+    onSuccess: () => console.log("Approved!"),
+    onError: () => console.error("Failed")
+  });
+};
+```
+
 **Service Layer Structure:**
 - **Services** (`src/services/`): Pure API functions
   - `getProfile(): Promise<Profile>`
   - `createOrder(data): Promise<Order>`
+  - `approveCandidate(id): Promise<any>`
   - Raw Axios/fetch calls, no hooks
   - Return plain promises
 
@@ -139,6 +166,7 @@ export const useCreateOrder = () => {
 - Import service function + `useFetch`/`usePost`
 - Use hooks directly in component
 - No intermediate wrapper hooks
+- No direct API calls in components
 
 ## 4. Performance
 - Optimize images: Use WebP format, size data, lazy loading
@@ -288,6 +316,8 @@ import { Typography } from "@/components/ui/typography";
 - `<Card>` - Card layouts
 - `<Skeleton>` - Loading states
 - `<Table>` - Data tables
+- `<ImageZoom>` - Image zoom/lightbox component
+- `<ImageGallery>` - Image gallery with navigation
 
 **When to use raw HTML:**
 - Semantic elements like `<nav>`, `<main>`, `<section>`, `<article>`, `<header>`, `<footer>`
@@ -372,6 +402,55 @@ Before committing, verify:
 
 // Disabled
 <Checkbox checked={true} disabled />
+```
+
+**Icons & Interactive Elements:**
+```tsx
+// ✅ CORRECT: Always use Lucide icons instead of SVG paths
+import { ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
+
+<Button variant="ghost" size="icon">
+  <X className="h-6 w-6" />
+</Button>
+
+// For image hover overlay
+<div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100">
+  <ZoomIn className="h-8 w-8 text-white" />
+</div>
+
+// ❌ WRONG: Don't use raw SVG paths or native button elements
+<button className="...">
+  <svg>
+    <path d="M21 21l-6-6..." />
+  </svg>
+</button>
+
+// ✅ CORRECT: Always use UI Button component
+import { Button } from "@/components/ui/button";
+
+<Button variant="ghost" size="icon" onClick={handleClick}>
+  <Icon className="h-6 w-6" />
+</Button>
+```
+
+**ImageZoom Component Usage:**
+```tsx
+// ✅ CORRECT: Use ImageZoom for clickable image previews
+import { ImageZoom } from "@/components/ui";
+
+<ImageZoom
+  src="/path/to/image.jpg"
+  alt="Image description"
+  className="aspect-square w-full rounded-lg"
+  unoptimized
+/>
+
+// Features:
+// - Click to open full-screen preview
+// - Close button (X) at top-right
+// - No clickable background (only close button)
+// - Lucide icons (ZoomIn for hover, X for close)
+// - UI Button components for all interactive elements
 ```
 
 **Common Migration Patterns:**

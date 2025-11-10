@@ -10,19 +10,25 @@ interface ExportSectionProps {
   filteredUsers: Candidate[];
   isExporting: boolean;
   setIsExporting: (value: boolean) => void;
+  fetchAllData: () => Promise<Candidate[]>;
 }
 
 export function ExportSection({
   filteredUsers,
   isExporting,
   setIsExporting,
+  fetchAllData,
 }: ExportSectionProps) {
   const handleExport = async (format: "pdf" | "excel") => {
     setIsExporting(true);
     try {
-      await exportUsers(filteredUsers as unknown as User[], format);
+      console.log("[Export] Fetching all data with paginate=0...");
+      const allData = await fetchAllData();
+      console.log(`[Export] Fetched ${allData.length} records for export`);
+      await exportUsers(allData as unknown as User[], format);
     } catch (error) {
       console.error("Export failed:", error);
+      alert("Failed to export data. Please try again.");
     } finally {
       setIsExporting(false);
     }

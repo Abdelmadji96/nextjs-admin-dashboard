@@ -45,6 +45,24 @@ export {
 } from "./dialog";
 
 export {
+  AlertDialog,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "./alert-dialog";
+
+export { ConfirmDialog } from "./confirm-dialog";
+
+export { ImageZoom, ImageGallery } from "./image-zoom";
+
+export {
   Dropdown,
   DropdownTrigger,
   DropdownContent,

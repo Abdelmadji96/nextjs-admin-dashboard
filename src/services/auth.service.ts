@@ -1,18 +1,7 @@
 import apiClient, { setLoggingOut } from "@/lib/api";
-import {
-  saveAuthData,
-  clearAuthData,
-  updateAccessToken,
-  getRefreshToken,
-} from "@/lib/cookies";
+import { saveAuthData, clearAuthData } from "@/lib/cookies";
 import { queryClient } from "@/lib/queryClient";
-import { initTokenRefresh, stopTokenRefresh } from "@/lib/tokenRefreshManager";
-import type {
-  LoginRequest,
-  LoginResponse,
-  RefreshTokenRequest,
-  RefreshTokenResponse,
-} from "@/types/auth";
+import type { LoginRequest, LoginResponse } from "@/types/auth";
 
 /**
  * Login user
@@ -24,11 +13,10 @@ export const login = async (credentials: LoginRequest): Promise<any> => {
     credentials,
   );
 
-  // Save encrypted auth data to cookies
+  // Save encrypted auth data to cookies (7 days for access token, 30 days for refresh token)
   saveAuthData(response.data);
 
-  // Initialize automatic token refresh
-  initTokenRefresh();
+  console.log("[Auth] ✅ Login successful, tokens saved to cookies");
 
   // Return structure compatible with usePost hook
   return {
@@ -39,53 +27,14 @@ export const login = async (credentials: LoginRequest): Promise<any> => {
 };
 
 /**
- * Refresh access token using refresh token
- * POST /auth/refresh
- */
-export const refreshToken = async (): Promise<RefreshTokenResponse> => {
-  const refresh_token = getRefreshToken();
-
-  if (!refresh_token) {
-    console.error("[Auth] No refresh token available");
-    throw new Error("No refresh token available");
-  }
-
-  try {
-    console.log("[Auth] Sending refresh token request...");
-    
-    const response = await apiClient.post<RefreshTokenResponse>("/auth/refresh", {
-      refresh_token,
-    } as RefreshTokenRequest);
-
-    // Update access token in cookies
-    updateAccessToken(response.data.access_token);
-
-    console.log("[Auth] Access token updated successfully");
-
-    return response.data;
-  } catch (error: any) {
-    console.error("[Auth] Refresh token request failed:", error.response?.data || error.message);
-    
-    // If refresh token is invalid or expired, clear auth data
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      console.log("[Auth] Refresh token expired or invalid, clearing auth data");
-      clearAuthData();
-    }
-    
-    throw error;
-  }
-};
-
-/**
  * Logout user
  * Clears all auth data and redirects to login
  */
 export const logout = (): void => {
-  // Set logging out flag to prevent token refresh attempts
-  setLoggingOut(true);
+  console.log("[Auth] Logging out...");
 
-  // Stop automatic token refresh
-  stopTokenRefresh();
+  // Set logging out flag to prevent token refresh attempts during logout
+  setLoggingOut(true);
 
   // Cancel all ongoing queries to prevent 401 loops
   queryClient.cancelQueries();
@@ -101,8 +50,8 @@ export const logout = (): void => {
     window.location.href = "/login";
   }
 
-  // Reset flag after a short delay (in case redirect takes time)
+  // Reset flag after redirect
   setTimeout(() => {
     setLoggingOut(false);
-  }, 1000);
+  }, 500);
 };

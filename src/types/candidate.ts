@@ -82,6 +82,7 @@ export interface CandidatesData {
 export interface CandidatesQueryParams {
   page?: number;
   limit?: number;
+  paginate?: number; // Set to 0 to fetch all data without pagination
   sortBy?: string;
   search?: string;
   reference?: string;

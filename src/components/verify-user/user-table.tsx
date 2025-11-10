@@ -3,7 +3,16 @@
 import { useState, useMemo } from "react";
 import { Badge, Button, Typography } from "@/components/ui";
 import type { Candidate } from "@/types/candidate";
-import { Calendar, Check, Copy, Eye, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  Copy,
+  Eye,
+  Users,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SortField = "id" | "name" | "date";
@@ -82,7 +91,9 @@ export function UserTable({
   };
   const getStatusBadge = (user: Candidate) => {
     const hasIdentityVerified = user.identity_verification_state === "verified";
-    const hasDiplomaVerified = user.stats.diplomas.verified > 0;
+    const hasDiplomaVerified = user.stats?.diplomas?.verified
+      ? user.stats.diplomas.verified > 0
+      : false;
     const hasCVPublished = user.cv?.status === "published";
 
     // Fully verified: identity + diploma + CV published
@@ -92,22 +103,24 @@ export function UserTable({
           Verified
         </Badge>
       );
-    } 
+    }
     // Pending: any pending items
     else if (
       user.identity_verification_state === "pending" ||
-      user.stats.diplomas.pending > 0
+      (user.stats?.diplomas?.pending ? user.stats.diplomas.pending > 0 : false)
     ) {
       return (
-        <Badge variant="warning" className="text-xs">
+        <Badge variant="pending" className="text-xs">
           Pending
         </Badge>
       );
-    } 
+    }
     // Canceled/Rejected
     else if (
       user.identity_verification_state === "canceled" ||
-      user.stats.diplomas.canceled > 0
+      (user.stats?.diplomas?.canceled
+        ? user.stats.diplomas.canceled > 0
+        : false)
     ) {
       return (
         <Badge variant="destructive" className="text-xs">
@@ -117,9 +130,7 @@ export function UserTable({
     }
     // Incomplete
     return (
-      <Badge variant="secondary" className="text-xs">
-        Incomplete
-      </Badge>
+      <Badge className="bg-inherit text-xs text-orange-600">Incomplete</Badge>
     );
   };
 
@@ -129,8 +140,8 @@ export function UserTable({
         <thead>
           <tr className="bg-muted/50 border-b-2 border-border backdrop-blur-sm">
             {/* Sortable: ID */}
-            <th 
-              className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+            <th
+              className="cursor-pointer select-none px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => handleSort("id")}
             >
               <div className="flex items-center">
@@ -138,10 +149,10 @@ export function UserTable({
                 {renderSortIcon("id")}
               </div>
             </th>
-            
+
             {/* Sortable: Full Name */}
-            <th 
-              className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+            <th
+              className="cursor-pointer select-none px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => handleSort("name")}
             >
               <div className="flex items-center">
@@ -149,10 +160,10 @@ export function UserTable({
                 {renderSortIcon("name")}
               </div>
             </th>
-            
+
             {/* Sortable: Date */}
-            <th 
-              className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+            <th
+              className="cursor-pointer select-none px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => handleSort("date")}
             >
               <div className="flex items-center">
@@ -160,7 +171,7 @@ export function UserTable({
                 {renderSortIcon("date")}
               </div>
             </th>
-            
+
             <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </th>
@@ -249,11 +260,14 @@ export function UserTable({
               {/* Diploma Verif */}
               <td className="px-6 py-4">
                 <Typography variant="bodySmall" className="text-foreground">
-                  {user.stats.diplomas.verified > 0
+                  {user.stats?.diplomas?.verified &&
+                  user.stats.diplomas.verified > 0
                     ? "✓"
-                    : user.stats.diplomas.pending > 0
+                    : user.stats?.diplomas?.pending &&
+                        user.stats.diplomas.pending > 0
                       ? "⏳"
-                      : user.stats.diplomas.canceled > 0
+                      : user.stats?.diplomas?.canceled &&
+                          user.stats.diplomas.canceled > 0
                         ? "✗"
                         : "-"}
                 </Typography>
@@ -265,8 +279,8 @@ export function UserTable({
                   variant="bodySmall"
                   className="text-muted-foreground"
                 >
-                  {user.cv?.status === "published" 
-                    ? "Published" 
+                  {user.cv?.status === "published"
+                    ? "Published"
                     : user.cv?.status === "draft"
                       ? "Draft"
                       : "No CV"}
@@ -296,7 +310,10 @@ export function UserTable({
         <div className="flex flex-col items-center justify-center px-4 py-16">
           {/* Empty State Icon */}
           <div className="bg-muted/50 mb-6 flex h-24 w-24 items-center justify-center rounded-full dark:bg-accent/10">
-            <Users className="h-12 w-12 text-muted-foreground" strokeWidth={1.5} />
+            <Users
+              className="h-12 w-12 text-muted-foreground"
+              strokeWidth={1.5}
+            />
           </div>
 
           {/* Empty State Text */}

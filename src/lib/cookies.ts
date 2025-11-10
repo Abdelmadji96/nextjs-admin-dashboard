@@ -99,12 +99,25 @@ export const isAuthenticated = (): boolean => {
 
 /**
  * Update access token
+ * Also extends the cookie expiration to prevent premature logout
  */
 export const updateAccessToken = (token: string): void => {
   Cookies.set("access_token", encryptData(token), {
     secure: true,
     sameSite: "strict",
-    expires: 7,
+    expires: 7, // 7 days
   });
+  
+  // Also extend user data cookie expiration to keep them in sync
+  const userData = getUser();
+  if (userData) {
+    Cookies.set("user", encryptData(userData), {
+      secure: true,
+      sameSite: "strict",
+      expires: 7,
+    });
+  }
+  
+  console.log("[Cookies] Access token and user data updated, expires in 7 days");
 };
 
