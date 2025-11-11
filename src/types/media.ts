@@ -17,5 +17,5 @@ export interface CandidateMedias {
   avatar?: Media;
   id_card_front?: Media;
   id_card_back?: Media;
+  diplomas?: Media[];
 }
-

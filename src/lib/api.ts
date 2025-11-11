@@ -7,9 +7,11 @@ import {
   getRefreshToken,
   clearAuthData,
   updateAccessToken,
+  updateRefreshToken,
 } from "./cookies";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || "v1";
 
 // Create axios instance
@@ -152,16 +154,20 @@ apiClient.interceptors.response.use(
             refresh_token,
           })
           .then((response) => {
-            const { access_token } = response.data;
+            const { access_token, refresh_token: new_refresh_token } =
+              response.data;
 
             if (!access_token) {
               throw new Error("No access token in refresh response");
             }
 
-            console.log("[API] ✅ Token refreshed successfully");
-
-            // Update token in cookies with extended expiration
+            // Update access token in cookies with extended expiration
             updateAccessToken(access_token);
+
+            // Update refresh token if a new one was provided
+            if (new_refresh_token) {
+              updateRefreshToken(new_refresh_token);
+            }
 
             // Update authorization header for original request
             originalRequest.headers.Authorization = `Bearer ${access_token}`;

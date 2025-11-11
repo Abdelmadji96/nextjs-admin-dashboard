@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { IdentityVerificationModal } from "@/components/Modals/identity-verification-modal";
 import { useFetch } from "@/hooks/useFetch";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -10,14 +9,11 @@ import type { IdentityQueryParams, CandidateIdentity } from "@/types/identity";
 import { queryClient } from "@/lib/queryClient";
 import {
   SearchBar,
-  QuickFilters,
   UserTable,
   UserTableSkeleton,
   ExportSection,
   Pagination,
-  CheckboxFilters,
 } from "@/components/verify-user";
-import { Button, Typography } from "@/components/ui";
 import { Candidate } from "@/types/candidate";
 
 export default function VerifyIdentityPage() {
@@ -27,12 +23,8 @@ export default function VerifyIdentityPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-
-  // Tab state: "pending" or "processed"
   const [activeTab, setActiveTab] = useState<"pending" | "processed">(
     "pending",
   );
@@ -46,10 +38,6 @@ export default function VerifyIdentityPage() {
       params.search = debouncedSearchTerm.trim();
     }
 
-    // Date range
-    if (dateFrom) params.from_date = dateFrom;
-    if (dateTo) params.to_date = dateTo;
-
     // Set identity_status based on active tab
     if (activeTab === "pending") {
       params.identity_status = "pending";
@@ -58,7 +46,7 @@ export default function VerifyIdentityPage() {
     }
 
     return params;
-  }, [debouncedSearchTerm, dateFrom, dateTo, activeTab]);
+  }, [debouncedSearchTerm, activeTab]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -170,6 +158,8 @@ export default function VerifyIdentityPage() {
               copiedId={copiedId}
               onCopyId={handleCopyId}
               onViewDetails={handleViewDetails}
+              hideDiplomaColumn
+              hideCVColumn
             />
             {paginationMeta && (
               <Pagination

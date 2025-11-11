@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import { X, ZoomIn } from "lucide-react";
+import { X, ZoomIn, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -32,6 +32,7 @@ export function ImageZoom({
 }: ImageZoomProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [rotation, setRotation] = useState(0);
 
   // Use images array if provided, otherwise create single-item array
   const imageArray = images || [{ src, alt }];
@@ -40,17 +41,24 @@ export function ImageZoom({
 
   const nextImage = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % imageArray.length);
+    setRotation(0); // Reset rotation when changing images
   }, [imageArray.length]);
 
   const prevImage = useCallback(() => {
     setCurrentIndex(
       (prev) => (prev - 1 + imageArray.length) % imageArray.length,
     );
+    setRotation(0); // Reset rotation when changing images
   }, [imageArray.length]);
 
-  // Reset to initial index when modal opens
+  const rotateImage = useCallback(() => {
+    setRotation((prev) => (prev + 90) % 360);
+  }, []);
+
+  // Reset to initial index and rotation when modal opens
   const handleOpen = () => {
     setCurrentIndex(initialIndex);
+    setRotation(0);
     setIsOpen(true);
   };
 
@@ -63,7 +71,9 @@ export function ImageZoom({
       if (
         e.key === "ArrowLeft" ||
         e.key === "ArrowRight" ||
-        e.key === "Escape"
+        e.key === "Escape" ||
+        e.key === "r" ||
+        e.key === "R"
       ) {
         e.preventDefault();
         e.stopPropagation();
@@ -75,6 +85,8 @@ export function ImageZoom({
         nextImage();
       } else if (e.key === "Escape") {
         setIsOpen(false);
+      } else if (e.key === "r" || e.key === "R") {
+        rotateImage();
       }
     };
 
@@ -83,7 +95,7 @@ export function ImageZoom({
     return () => {
       window.removeEventListener("keydown", handleKeyDown, true);
     };
-  }, [isOpen, hasMultipleImages, prevImage, nextImage]);
+  }, [isOpen, hasMultipleImages, prevImage, nextImage, rotateImage]);
 
   const lightboxContent = isOpen && (
     <div
@@ -110,27 +122,54 @@ export function ImageZoom({
         e.stopPropagation();
       }}
     >
-      {/* Close Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsOpen(false);
-        }}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        onPointerDown={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        className="absolute right-4 top-4 z-10 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
-      >
-        <X className="h-6 w-6" />
-      </Button>
+      {/* Top Controls */}
+      <div className="absolute right-4 top-4 z-10 flex gap-2">
+        {/* Rotate Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            rotateImage();
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className="rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          title="Rotate image (R)"
+        >
+          <RotateCw className="h-6 w-6" />
+        </Button>
+
+        {/* Close Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(false);
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className="rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          title="Close (Esc)"
+        >
+          <X className="h-6 w-6" />
+        </Button>
+      </div>
 
       <div
         className="relative h-[85vh] w-[85vw]"
@@ -151,7 +190,8 @@ export function ImageZoom({
           src={currentImage.src}
           alt={currentImage.alt}
           fill
-          className="object-contain"
+          className="object-contain transition-transform duration-300"
+          style={{ transform: `rotate(${rotation}deg)` }}
           unoptimized={unoptimized}
           priority
         />
@@ -232,6 +272,40 @@ export function ImageGallery({
   onNext,
   onPrev,
 }: ImageGalleryProps) {
+  const [rotation, setRotation] = useState(0);
+
+  // Reset rotation when image changes
+  useEffect(() => {
+    setRotation(0);
+  }, [currentIndex]);
+
+  const rotateImage = useCallback(() => {
+    setRotation((prev) => (prev + 90) % 360);
+  }, []);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        e.stopPropagation();
+        rotateImage();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [isOpen, rotateImage, onClose]);
+
   if (!isOpen || images.length === 0) return null;
 
   const currentImage = images[currentIndex];
@@ -241,18 +315,36 @@ export function ImageGallery({
       className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Close Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
-        className="absolute right-4 top-4 z-10 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
-      >
-        <X className="h-6 w-6" />
-      </Button>
+      {/* Top Controls */}
+      <div className="absolute right-4 top-4 z-10 flex gap-2">
+        {/* Rotate Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            rotateImage();
+          }}
+          className="rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          title="Rotate image (R)"
+        >
+          <RotateCw className="h-6 w-6" />
+        </Button>
+
+        {/* Close Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+          title="Close (Esc)"
+        >
+          <X className="h-6 w-6" />
+        </Button>
+      </div>
 
       {/* Image Counter */}
       <div
@@ -281,7 +373,8 @@ export function ImageGallery({
           src={currentImage?.src || ""}
           alt={currentImage?.alt || ""}
           fill
-          className="object-contain"
+          className="object-contain transition-transform duration-300"
+          style={{ transform: `rotate(${rotation}deg)` }}
           unoptimized
           priority
         />

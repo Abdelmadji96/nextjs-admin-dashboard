@@ -13,6 +13,7 @@ import {
   DialogFooter,
   ConfirmDialog,
   ImageZoom,
+  Skeleton,
 } from "@/components/ui";
 import {
   User,
@@ -25,7 +26,10 @@ import {
   AlertTriangle,
   ImageIcon,
   CreditCard,
+  RotateCw,
+  ZoomIn,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { usePost } from "@/hooks/usePost";
 import { approveIdentity, rejectIdentity } from "@/services/identity.service";
@@ -52,14 +56,68 @@ export function IdentityVerificationModal({
   onSuccess,
   showActions = false,
 }: IdentityVerificationModalProps) {
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [medias, setMedias] = useState<CandidateMedias | null>(null);
   const [isLoadingMedias, setIsLoadingMedias] = useState(false);
+  const [imageRotations, setImageRotations] = useState<{
+    avatar: number;
+    id_card_front: number;
+    id_card_back: number;
+  }>({
+    avatar: 0,
+    id_card_front: 0,
+    id_card_back: 0,
+  });
+  const [selectedImage, setSelectedImage] = useState<{
+    type: "avatar" | "id_card_front" | "id_card_back";
+    src: string;
+    alt: string;
+  } | null>(null);
 
   const { mutate: approve, isPending: isApproving } = usePost(approveIdentity);
   const { mutate: reject, isPending: isRejecting } = usePost(rejectIdentity);
 
   const isProcessing = isApproving || isRejecting;
+
+  const handleRotateImage = (
+    imageType: "avatar" | "id_card_front" | "id_card_back",
+  ) => {
+    setImageRotations((prev) => ({
+      ...prev,
+      [imageType]: (prev[imageType] + 90) % 360,
+    }));
+  };
+
+  const handleImageClick = (
+    imageType: "avatar" | "id_card_front" | "id_card_back",
+    src: string,
+    alt: string,
+  ) => {
+    setSelectedImage({ type: imageType, src, alt });
+  };
+
+  const handleCloseZoom = () => {
+    setSelectedImage(null);
+  };
+
+  // Keyboard navigation for zoom modal
+  useEffect(() => {
+    if (!selectedImage) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleCloseZoom();
+      } else if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        handleRotateImage(selectedImage.type);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImage, imageRotations]);
 
   // Fetch candidate medias when modal opens
   useEffect(() => {
@@ -129,10 +187,16 @@ export function IdentityVerificationModal({
 
   const handleApprove = () => {
     if (!user) return;
+    setShowApproveDialog(true);
+  };
+
+  const confirmApprove = () => {
+    if (!user) return;
 
     approve(user.id, {
       onSuccess: () => {
         console.log("[Identity] ✅ Approved user:", user.id);
+        setShowApproveDialog(false);
         if (onSuccess) {
           onSuccess();
         }
@@ -140,6 +204,7 @@ export function IdentityVerificationModal({
       },
       onError: () => {
         console.error("[Identity] ❌ Approve failed");
+        setShowApproveDialog(false);
         alert("Failed to approve identity verification. Please try again.");
       },
     });
@@ -224,8 +289,37 @@ export function IdentityVerificationModal({
             </Typography>
 
             {isLoadingMedias ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="bg-muted/20 rounded-lg border border-border p-4">
+                  <Typography
+                    variant="label"
+                    className="mb-2 flex items-center gap-2 text-muted-foreground"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    Avatar
+                  </Typography>
+                  <Skeleton className="aspect-square w-full rounded-lg" />
+                </div>
+                <div className="bg-muted/20 rounded-lg border border-border p-4">
+                  <Typography
+                    variant="label"
+                    className="mb-2 flex items-center gap-2 text-muted-foreground"
+                  >
+                    <CreditCard className="h-3.5 w-3.5" />
+                    ID Card (Front)
+                  </Typography>
+                  <Skeleton className="aspect-[1.6/1] w-full rounded-lg" />
+                </div>
+                <div className="bg-muted/20 rounded-lg border border-border p-4">
+                  <Typography
+                    variant="label"
+                    className="mb-2 flex items-center gap-2 text-muted-foreground"
+                  >
+                    <CreditCard className="h-3.5 w-3.5" />
+                    ID Card (Back)
+                  </Typography>
+                  <Skeleton className="aspect-[1.6/1] w-full rounded-lg" />
+                </div>
               </div>
             ) : (
               (() => {
@@ -254,22 +348,51 @@ export function IdentityVerificationModal({
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     {/* Avatar */}
                     <div className="bg-muted/20 rounded-lg border border-border p-4">
-                      <Typography
-                        variant="label"
-                        className="mb-2 flex items-center gap-2 text-muted-foreground"
-                      >
-                        <ImageIcon className="h-3.5 w-3.5" />
-                        Avatar
-                      </Typography>
+                      <div className="mb-2 flex items-center justify-between">
+                        <Typography
+                          variant="label"
+                          className="flex items-center gap-2 text-muted-foreground"
+                        >
+                          <ImageIcon className="h-3.5 w-3.5" />
+                          Avatar
+                        </Typography>
+                        {medias?.avatar && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRotateImage("avatar")}
+                            className="h-7 w-7"
+                            title="Rotate image"
+                          >
+                            <RotateCw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                       {medias?.avatar ? (
-                        <ImageZoom
-                          src={getMediaUrl(medias.avatar.hash)}
-                          alt="Candidate Avatar"
-                          className="aspect-square w-full rounded-lg"
-                          unoptimized
-                          images={availableImages}
-                          initialIndex={0}
-                        />
+                        <div
+                          className="group relative aspect-square w-full cursor-pointer overflow-hidden rounded-lg border border-border transition-all hover:ring-2 hover:ring-primary"
+                          onClick={() =>
+                            handleImageClick(
+                              "avatar",
+                              getMediaUrl(medias.avatar!.hash),
+                              "Candidate Avatar",
+                            )
+                          }
+                        >
+                          <Image
+                            src={getMediaUrl(medias.avatar.hash)}
+                            alt="Candidate Avatar"
+                            fill
+                            className="object-cover transition-all duration-300 group-hover:scale-105"
+                            style={{
+                              transform: `rotate(${imageRotations.avatar}deg)`,
+                            }}
+                            unoptimized
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/20 group-hover:opacity-100">
+                            <ZoomIn className="h-8 w-8 text-white" />
+                          </div>
+                        </div>
                       ) : (
                         <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-muted">
                           <Typography variant="muted" className="text-xs">
@@ -281,22 +404,51 @@ export function IdentityVerificationModal({
 
                     {/* ID Card Front */}
                     <div className="bg-muted/20 rounded-lg border border-border p-4">
-                      <Typography
-                        variant="label"
-                        className="mb-2 flex items-center gap-2 text-muted-foreground"
-                      >
-                        <CreditCard className="h-3.5 w-3.5" />
-                        ID Card (Front)
-                      </Typography>
+                      <div className="mb-2 flex items-center justify-between">
+                        <Typography
+                          variant="label"
+                          className="flex items-center gap-2 text-muted-foreground"
+                        >
+                          <CreditCard className="h-3.5 w-3.5" />
+                          ID Card (Front)
+                        </Typography>
+                        {medias?.id_card_front && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRotateImage("id_card_front")}
+                            className="h-7 w-7"
+                            title="Rotate image"
+                          >
+                            <RotateCw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                       {medias?.id_card_front ? (
-                        <ImageZoom
-                          src={getMediaUrl(medias.id_card_front.hash)}
-                          alt="ID Card Front"
-                          className="aspect-[1.6/1] w-full rounded-lg"
-                          unoptimized
-                          images={availableImages}
-                          initialIndex={medias?.avatar ? 1 : 0}
-                        />
+                        <div
+                          className="group relative aspect-[1.6/1] w-full cursor-pointer overflow-hidden rounded-lg border border-border transition-all hover:ring-2 hover:ring-primary"
+                          onClick={() =>
+                            handleImageClick(
+                              "id_card_front",
+                              getMediaUrl(medias.id_card_front!.hash),
+                              "ID Card Front",
+                            )
+                          }
+                        >
+                          <Image
+                            src={getMediaUrl(medias.id_card_front.hash)}
+                            alt="ID Card Front"
+                            fill
+                            className="object-cover transition-all duration-300 group-hover:scale-105"
+                            style={{
+                              transform: `rotate(${imageRotations.id_card_front}deg)`,
+                            }}
+                            unoptimized
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/20 group-hover:opacity-100">
+                            <ZoomIn className="h-8 w-8 text-white" />
+                          </div>
+                        </div>
                       ) : (
                         <div className="flex aspect-[1.6/1] w-full items-center justify-center rounded-lg bg-muted">
                           <Typography variant="muted" className="text-xs">
@@ -308,22 +460,51 @@ export function IdentityVerificationModal({
 
                     {/* ID Card Back */}
                     <div className="bg-muted/20 rounded-lg border border-border p-4">
-                      <Typography
-                        variant="label"
-                        className="mb-2 flex items-center gap-2 text-muted-foreground"
-                      >
-                        <CreditCard className="h-3.5 w-3.5" />
-                        ID Card (Back)
-                      </Typography>
+                      <div className="mb-2 flex items-center justify-between">
+                        <Typography
+                          variant="label"
+                          className="flex items-center gap-2 text-muted-foreground"
+                        >
+                          <CreditCard className="h-3.5 w-3.5" />
+                          ID Card (Back)
+                        </Typography>
+                        {medias?.id_card_back && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRotateImage("id_card_back")}
+                            className="h-7 w-7"
+                            title="Rotate image"
+                          >
+                            <RotateCw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                       {medias?.id_card_back ? (
-                        <ImageZoom
-                          src={getMediaUrl(medias.id_card_back.hash)}
-                          alt="ID Card Back"
-                          className="aspect-[1.6/1] w-full rounded-lg"
-                          unoptimized
-                          images={availableImages}
-                          initialIndex={availableImages.length - 1}
-                        />
+                        <div
+                          className="group relative aspect-[1.6/1] w-full cursor-pointer overflow-hidden rounded-lg border border-border transition-all hover:ring-2 hover:ring-primary"
+                          onClick={() =>
+                            handleImageClick(
+                              "id_card_back",
+                              getMediaUrl(medias.id_card_back!.hash),
+                              "ID Card Back",
+                            )
+                          }
+                        >
+                          <Image
+                            src={getMediaUrl(medias.id_card_back.hash)}
+                            alt="ID Card Back"
+                            fill
+                            className="object-cover transition-all duration-300 group-hover:scale-105"
+                            style={{
+                              transform: `rotate(${imageRotations.id_card_back}deg)`,
+                            }}
+                            unoptimized
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/20 group-hover:opacity-100">
+                            <ZoomIn className="h-8 w-8 text-white" />
+                          </div>
+                        </div>
                       ) : (
                         <div className="flex aspect-[1.6/1] w-full items-center justify-center rounded-lg bg-muted">
                           <Typography variant="muted" className="text-xs">
@@ -528,6 +709,21 @@ export function IdentityVerificationModal({
         </DialogFooter>
       </DialogContent>
 
+      {/* Approve Confirmation Dialog */}
+      <ConfirmDialog
+        open={showApproveDialog}
+        onOpenChange={setShowApproveDialog}
+        title="Approve Identity Verification"
+        description={`Are you sure you want to approve the identity verification for ${user.first_name} ${user.last_name}? Please ensure all documents have been thoroughly reviewed.`}
+        icon={CheckCircle}
+        confirmText="Approve"
+        cancelText="Cancel"
+        confirmVariant="default"
+        onConfirm={confirmApprove}
+        isLoading={isApproving}
+      />
+
+      {/* Reject Confirmation Dialog */}
       <ConfirmDialog
         open={showRejectDialog}
         onOpenChange={setShowRejectDialog}
@@ -540,6 +736,57 @@ export function IdentityVerificationModal({
         onConfirm={confirmReject}
         isLoading={isRejecting}
       />
+
+      {/* Image Zoom Modal */}
+      {selectedImage && (
+        <Dialog open={selectedImage !== null} onOpenChange={handleCloseZoom}>
+          <DialogContent className="max-h-[95vh] max-w-[95vw] p-0">
+            <div className="relative flex h-[90vh] w-full items-center justify-center bg-black">
+              {/* Top Controls */}
+              <div className="absolute right-4 top-4 z-10 flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRotateImage(selectedImage.type)}
+                  className="rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  title="Rotate image (R)"
+                >
+                  <RotateCw className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCloseZoom}
+                  className="rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  title="Close (Esc)"
+                >
+                  <XCircle className="h-6 w-6" />
+                </Button>
+              </div>
+
+              {/* Image Label */}
+              <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/50 px-4 py-2 text-sm text-white">
+                {selectedImage.alt}
+              </div>
+
+              {/* Main Image */}
+              <div className="relative h-[85vh] w-[85vw]">
+                <Image
+                  src={selectedImage.src}
+                  alt={selectedImage.alt}
+                  fill
+                  className="object-contain transition-transform duration-300"
+                  style={{
+                    transform: `rotate(${imageRotations[selectedImage.type]}deg)`,
+                  }}
+                  unoptimized
+                  priority
+                />
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

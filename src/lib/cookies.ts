@@ -117,7 +117,17 @@ export const updateAccessToken = (token: string): void => {
       expires: 7,
     });
   }
-  
-  console.log("[Cookies] Access token and user data updated, expires in 7 days");
+  };
+
+/**
+ * Update refresh token
+ * Used when API returns a new refresh token during token refresh
+ */
+export const updateRefreshToken = (token: string): void => {
+  Cookies.set("refresh_token", encryptData(token), {
+    secure: true,
+    sameSite: "strict",
+    expires: 30, // 30 days
+  });
 };
 

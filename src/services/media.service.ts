@@ -13,7 +13,9 @@ export const getCandidateMedias = async (
 export const organizeCandidateMedias = (
   medias: MediaResponse["data"],
 ): CandidateMedias => {
-  const organized: CandidateMedias = {};
+  const organized: CandidateMedias = {
+    diplomas: [],
+  };
 
   medias.forEach((media) => {
     if (media.collection_name === "avatar") {
@@ -22,6 +24,8 @@ export const organizeCandidateMedias = (
       organized.id_card_front = media;
     } else if (media.collection_name === "id_card_back") {
       organized.id_card_back = media;
+    } else if (media.collection_name === "diploma") {
+      organized.diplomas?.push(media);
     }
   });
 

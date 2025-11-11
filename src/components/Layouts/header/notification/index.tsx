@@ -55,16 +55,16 @@ export function Notification() {
       }}
     >
       <DropdownTrigger
-        className="grid size-12 place-items-center rounded-full border bg-gray-2 text-dark outline-none hover:text-primary focus-visible:border-primary focus-visible:text-primary dark:border-dark-4 dark:bg-dark-3 dark:text-white dark:focus-visible:border-primary"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-gray-2 text-dark outline-none transition-all duration-200 hover:scale-105 hover:text-primary active:scale-95 focus-visible:border-primary focus-visible:text-primary dark:border-dark-4 dark:bg-dark-3 dark:text-white dark:focus-visible:border-primary md:h-11 md:w-11"
         aria-label="View Notifications"
       >
         <span className="relative">
-          <BellIcon />
+          <BellIcon className="h-5 w-5" />
 
           {isDotVisible && (
             <span
               className={cn(
-                "absolute right-0 top-0 z-1 size-2 rounded-full bg-red-light ring-2 ring-gray-2 dark:ring-dark-3",
+                "absolute right-0 top-0 z-1 h-2 w-2 rounded-full bg-red-light ring-2 ring-gray-2 dark:ring-dark-3",
               )}
             >
               <span className="absolute inset-0 -z-1 animate-ping rounded-full bg-red-light opacity-75" />

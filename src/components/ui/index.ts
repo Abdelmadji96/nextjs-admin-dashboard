@@ -25,6 +25,19 @@ export { Checkbox, checkboxVariants } from "./checkbox";
 export type { CheckboxProps } from "./checkbox";
 
 export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from "./select";
+
+export {
   Skeleton,
   SkeletonText,
   SkeletonAvatar,

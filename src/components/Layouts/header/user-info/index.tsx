@@ -54,25 +54,25 @@ export function UserInfo() {
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
-      <DropdownTrigger className="rounded align-middle outline-none ring-primary ring-offset-2 focus-visible:ring-1 dark:ring-offset-gray-dark">
+      <DropdownTrigger className="rounded align-middle outline-none transition-transform duration-200 hover:scale-105 active:scale-95 ring-primary ring-offset-2 focus-visible:ring-1 dark:ring-offset-gray-dark">
         <span className="sr-only">My Account</span>
 
-        <figure className="flex items-center gap-3">
+        <figure className="flex items-center gap-2 md:gap-3">
           <Image
             src={USER.img}
-            className="size-12 rounded-full"
+            className="h-10 w-10 rounded-full object-cover md:h-11 md:w-11"
             alt={`Avatar of ${USER.name}`}
             role="presentation"
             width={200}
             height={200}
           />
-          <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <span>{USER.name}</span>
+          <figcaption className="hidden items-center gap-1 text-sm font-medium text-dark dark:text-dark-6 lg:flex">
+            <span className="max-w-[100px] truncate xl:max-w-none">{USER.name}</span>
 
             <ChevronUpIcon
               aria-hidden
               className={cn(
-                "rotate-180 transition-transform",
+                "h-4 w-4 rotate-180 transition-transform shrink-0",
                 isOpen && "rotate-0",
               )}
               strokeWidth={1.5}

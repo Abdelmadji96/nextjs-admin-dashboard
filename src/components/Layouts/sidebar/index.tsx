@@ -46,12 +46,14 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay - Improved z-index */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in"
+          className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
+          role="button"
+          tabIndex={-1}
         />
       )}
 
@@ -59,7 +61,7 @@ export function Sidebar() {
         className={cn(
           "max-w-[290px] overflow-hidden bg-white/95 backdrop-blur-md transition-all duration-300 ease-in-out dark:bg-gray-dark/95",
           "border-border/30 border-r shadow-2xl shadow-black/5 dark:shadow-black/20",
-          isMobile ? "fixed bottom-0 top-0 z-50" : "sticky top-0 h-screen",
+          isMobile ? "fixed bottom-0 top-0 z-[48]" : "sticky top-0 h-screen",
           isOpen ? "w-full" : "w-0",
         )}
         aria-label="Main navigation"
